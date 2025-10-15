@@ -1,0 +1,51 @@
+add readme for realtime notes app
+# Realtime Notes App Backend
+
+This is the backend for a realtime notes application, built with Node.js, Express, and Socket.IO.
+
+## Features
+
+- Realtime note synchronization using WebSockets (Socket.IO).
+- RESTful API for managing notes (create, read, update, delete).
+- User authentication (to be implemented).
+- Persistence of notes (to be implemented).
+
+## Technologies Used
+
+- **Node.js**: JavaScript runtime environment.
+- **Express**: Web application framework for Node.js.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v22 or higher)
+- npm (Node Package Manager)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/SiddhantDeval/realtime-notes.git
+   cd realtime-note-backend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Configuration
+
+Create a `.env.development` file in the root directory and add the following environment variables:
+
+```
+PORT=4001
+```
+
+### Running the Server
+
+To start the development server:
+
+```bash
+npm run dev
