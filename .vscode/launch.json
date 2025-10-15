@@ -1,26 +1,45 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "tsx",
-            "type": "node",
-            "request": "launch",
-            "runtimeExecutable": "tsx",
-            "args": ["${workspaceFolder}/src/index.ts"],
-            "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            "restart": true,
-            "env": {
-                "NODE_ENV": "development"
-            }
-        },
-        {
-            "name": "Attach to process",
-            "type": "node",
-            "request": "attach",
-            "port": 4001,
-            "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "backend:txs",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "tsx",
+      "args": ["${workspaceFolder}/backend/src/index.ts"],
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/backend/node_modules/**"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "restart": true,
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "backend:Attach to process",
+      "type": "node",
+      "request": "attach",
+      "port": 4001,
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/backend/node_modules/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "frontend",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/frontend",
+      "cwd": "${workspaceFolder}/frontend"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Server & Client",
+      "configurations": ["frontend", "backend:txs"]
+    }
+  ]
 }
