@@ -4,9 +4,8 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "dev": "date && tsx watch --clear-screen=false --env-file=.env.development src/index.ts",
-        "dev:staging": "tsx --watch --clear-screen=false  --env-file .env.staging src/index.ts",
-        "dev:prod": "tsx --watch ---clear-screen=false  -env-file .env.production src/index.ts",
+        "dev": "date && NODE_ENV=development tsx watch --clear-screen=false src/index.ts",
+        "dev:prod": "date && NODE_ENV=production tsx watch --clear-screen=false src/index.ts",
         "start": "node dist/index.js",
         "build": "eslint . && tsc",
         "debug": "tsx watch --clear-screen=false --inspect-brk src/index.ts",
@@ -15,13 +14,17 @@
         "lint:fix": "eslint --fix .",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "prisma:pull-dev" : "dotenv -e .env.development -- npx prisma db pull",
+        "prisma:push-dev" : "dotenv -e .env.development -- npx prisma db push",
+        "prisma:generate-dev" : "dotenv -e .env.development -- npx prisma generate"
     },
     "keywords": [],
     "author": "siddhant deval",
     "license": "ISC",
     "type": "commonjs",
     "dependencies": {
+        "dotenv": "^17.2.3",
         "express": "^5.1.0"
     },
     "devDependencies": {
@@ -29,8 +32,10 @@
         "@tsconfig/node22": "^22.0.2",
         "@types/express": "^5.0.3",
         "@types/node": "^24.7.2",
+        "dotenv-cli": "^10.0.0",
         "eslint": "^9.37.0",
         "prettier": "^3.6.2",
+        "prisma": "^6.17.1",
         "tsx": "^4.20.6",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.46.1"
