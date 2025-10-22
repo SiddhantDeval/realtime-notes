@@ -6,7 +6,7 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "tsx",
-      "args": ["${workspaceFolder}/backend/src/index.ts"],
+      "args": ["${workspaceFolder}/backend/src/server.ts"],
       "skipFiles": ["<node_internals>/**", "${workspaceFolder}/backend/node_modules/**"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",

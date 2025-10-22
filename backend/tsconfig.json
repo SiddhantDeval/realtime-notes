@@ -2,14 +2,15 @@
     "extends": "@tsconfig/node22/tsconfig.json",
     "compilerOptions": {
         "outDir": "./dist",
-        "rootDir": "./src",
+        "rootDir": ".",
         "resolveJsonModule": true,
         "allowJs": true,
         "esModuleInterop": true,
         "isolatedModules": true,
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "@prisma-client/*": ["./generated/*"]
         }
     },
-    "include": ["src/**/*.ts"]
+    "include": ["./src/**/*.ts"]
 }

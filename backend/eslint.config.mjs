@@ -17,20 +17,26 @@ export default defineConfig({
     rules: {
         'no-console': 'warn', // Warns about console.log statements
         // Enforce consistent indentation (e.g., 4 spaces)
-        indent: ['error', 4],
+        indent: ['error', 4, { SwitchCase: 1 }],
         // Enforce consistent use of single quotes for strings
         quotes: ['error', 'single'],
         // Enforce consistent use of semicolons
         semi: ['error', 'never'],
         // Require trailing commas in multiline object and array literals
-        'comma-dangle': ['error', 'always-multiline'],
+        // 'comma-dangle': ['error', 'always-multiline'],
         // Enforce camelCase naming convention
-        camelcase: ['error', { properties: 'always' }],
+        // camelcase: ['error', { properties: 'always' }],
         // Disallow unused variables
-        'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+        // 'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
         // TypeScript-specific rules
         '@typescript-eslint/explicit-module-boundary-types': 'off', // Allow inferring return types
         '@typescript-eslint/no-explicit-any': 'warn', // Warn about using 'any'
-        '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+        '@typescript-eslint/no-unused-vars': [
+            'warn',
+            {
+                caughtErrorsIgnorePattern: '^_',
+                argsIgnorePattern: '^_',
+            },
+        ],
     },
 })
