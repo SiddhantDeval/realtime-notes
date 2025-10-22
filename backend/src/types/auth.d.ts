@@ -1,5 +1,5 @@
 interface DECODED {
-    id: number
+    userId: number
     email: string
     exp: number
 }

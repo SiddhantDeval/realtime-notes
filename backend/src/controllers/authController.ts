@@ -55,4 +55,29 @@ export default class AuthController {
             ErrorHelper.handleError(res, error)
         }
     }
+    static me = async (req: Request, res: Response) => {
+        try {
+            if (!req.user) {
+                return ResponseHelper.unauthorized(res, 'User not authenticated')
+            }
+
+            const user = await prisma.user.findUnique({
+                where: { id: req.user.userId },
+                select: {
+                    id: true,
+                    email: true,
+                    created_at: true,
+                    updated_at: true,
+                },
+            })
+
+            if (!user) {
+                return ResponseHelper.notFound(res, 'User not found')
+            }
+
+            ResponseHelper.success(res, user)
+        } catch (error) {
+            ErrorHelper.handleError(res, error)
+        }
+    }
 }
