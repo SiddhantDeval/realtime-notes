@@ -15,15 +15,17 @@
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "prisma:pull-dev" : "dotenv -e .env.development -- npx prisma db pull",
-        "prisma:push-dev" : "dotenv -e .env.development -- npx prisma db push",
-        "prisma:generate-dev" : "dotenv -e .env.development -- npx prisma generate"
+        "prisma:pull-dev": "dotenv -e .env.development -- npx prisma db pull",
+        "prisma:push-dev": "dotenv -e .env.development -- npx prisma db push",
+        "prisma:generate-dev": "dotenv -e .env.development -- npx prisma generate",
+        "prisma:migrate-dev": "dotenv -e .env.development -- npx prisma migrate"
     },
     "keywords": [],
     "author": "siddhant deval",
     "license": "ISC",
     "type": "commonjs",
     "dependencies": {
+        "@prisma/client": "^6.17.1",
         "dotenv": "^17.2.3",
         "express": "^5.1.0"
     },
