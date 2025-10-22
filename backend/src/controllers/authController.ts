@@ -1,8 +1,7 @@
 import { Request, Response } from 'express'
 import prisma from '@/models/client'
-import AuthHelper from '@/helpers/authHelper'
-import { ErrorHelper } from '@/helpers/errorHelper'
-import { ResponseHelper } from '@/helpers/responseHelper'
+import { AuthHelper, ResponseHelper, ErrorHelper } from '@/helpers'
+
 
 export default class AuthController {
     static register = async (req: Request, res: Response) => {

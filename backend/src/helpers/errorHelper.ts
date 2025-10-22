@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma-client/prisma'
 import { Response } from 'express'
 
-export class ErrorHelper {
+export default class ErrorHelper {
     static handleError(res: Response, error: unknown) {
         // eslint-disable-next-line no-console
         console.error(error)

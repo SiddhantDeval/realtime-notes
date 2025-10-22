@@ -1,6 +1,6 @@
+import { ResponseHelper, AuthHelper } from '@/helpers'
 import { Request, Response, NextFunction } from 'express'
-import AuthHelper from '@/helpers/authHelper'
-import { ResponseHelper } from '@/helpers/responseHelper'
+
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const authorization = req.headers['authorization']

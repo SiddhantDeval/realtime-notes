@@ -1,6 +1,6 @@
 import { Response } from 'express'
 
-export class ResponseHelper {
+export default class ResponseHelper {
     static success<T>(res: Response, data: T, status: number = 200) {
         return res.status(status).json({ success: true, status, data })
     }
