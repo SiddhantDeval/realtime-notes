@@ -3,6 +3,8 @@ import { Response } from 'express'
 export class ErrorHelper {
     static handleError(res: Response, error: unknown) {
         if (error instanceof Error) {
+            // eslint-disable-next-line no-console
+            console.error(error)
             return res.status(500).json({ error: error.message })
         } else {
             return res.status(500).json({ error: 'An unknown error occurred' })

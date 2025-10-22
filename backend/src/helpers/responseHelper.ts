@@ -2,11 +2,11 @@ import { Response } from 'express'
 
 export class ResponseHelper {
     static success<T>(res: Response, data: T, status: number = 200) {
-        return res.status(status).json({ success: true, data })
+        return res.status(status).json({ success: true, status, data })
     }
 
     static error(res: Response, message: string, status: number = 500, details?: unknown) {
-        return res.status(status).json({ success: false, error: message, details })
+        return res.status(status).json({ success: false, error: message, status, details })
     }
 
     static badRequest(res: Response, message: string = 'Bad Request', details?: unknown) {
