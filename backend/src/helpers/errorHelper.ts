@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma-client/prisma'
 import { Response } from 'express'
+import ResponseHelper from './responseHelper'
 
 export default class ErrorHelper {
     static handleError(res: Response, error: unknown) {
@@ -15,8 +16,10 @@ export default class ErrorHelper {
             return ErrorHelper.handlePrismaError(res, error)
         }
 
-        // Generic error response for unhandled errors
-        return res.status(500).json({ error: 'An unexpected error occurred.' })
+        if (error instanceof Error) {
+            return ResponseHelper.badRequest(res, error.message)
+        }
+        return ResponseHelper.internalServerError(res, 'An unexpected error occurred.')
     }
 
     static handlePrismaError(res: Response, error: unknown) {
@@ -24,103 +27,70 @@ export default class ErrorHelper {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             switch (error.code) {
                 case 'P2002':
-                    return res.status(409).json({
-                        error: `Unique constraint failed on the field: ${error.meta?.target}`,
-                    })
+                    return ResponseHelper.conflict(res, `Unique constraint failed on the field: ${error.meta?.target}`)
 
                 case 'P2003':
-                    return res.status(400).json({
-                        error: `Foreign key constraint failed on field: ${error.meta?.field_name}`,
-                    })
+                    return ResponseHelper.badRequest(res, `Foreign key constraint failed on field: ${error.meta?.field_name}`)
 
                 case 'P2000':
-                    return res.status(400).json({
-                        error: `Value too long for field: ${error.meta?.target}`,
-                    })
+                    return ResponseHelper.badRequest(res, `The provided value for a column is too long. Field: ${error.meta?.column_name}`)
 
                 case 'P2001':
-                    return res.status(404).json({
-                        error: `Record not found for where condition: ${JSON.stringify(error.meta)}`,
-                    })
+                    return ResponseHelper.notFound(
+                        res,
+                        `Record not found. ${error.meta?.modelName ? `Model: ${error.meta?.modelName}.` : ''} ${error.meta?.details || ''}`
+                    )
 
                 case 'P2004':
-                    return res.status(400).json({
-                        error: 'A database constraint failed.',
-                    })
+                    return ResponseHelper.internalServerError(res, `The constraint failed on the database: ${error.meta?.constraint}`)
 
                 case 'P2005':
-                    return res.status(400).json({
-                        error: `Invalid value for field: ${error.meta?.field_name}`,
-                    })
+                    return ResponseHelper.badRequest(res, `The data in the ${error.meta?.field_name} field does not match the expected type.`)
 
                 case 'P2010':
-                    return res.status(500).json({
-                        error: `Raw query failed. ${error.message}`,
-                    })
+                    return ResponseHelper.internalServerError(res, `Raw query failed. ${error.message}`)
 
                 case 'P2014':
-                    return res.status(400).json({
-                        error: `Invalid relation between records. ${error.message}`,
-                    })
+                    return ResponseHelper.badRequest(res, `Invalid relation between records. ${error.message}`)
+
+                case 'P2011':
+                    return ResponseHelper.badRequest(res, `Null constraint violation on the  ${error.meta?.constraint} field.`)
+
+                case 'P2012':
+                    return ResponseHelper.badRequest(res, `Missing a required value at ${error.meta?.path}.`)
+
+                case 'P2013':
+                    return ResponseHelper.badRequest(
+                        res,
+                        `Missing the required argument ${error.meta?.argument_name} for the ${error.meta?.function_name} function.`
+                    )
 
                 case 'P2025':
-                    return res.status(404).json({
-                        error: 'Operation failed because the record was not found.',
-                    })
+                    return ResponseHelper.notFound(res, `Record to update or delete not found. ${error.meta?.cause || ''}`)
 
                 default:
-                    return res.status(400).json({
-                        error: `Prisma error (${error.code}): ${error.message}`,
-                    })
+                    return ResponseHelper.internalServerError(res, `An unexpected Prisma error occurred. Code: ${error.code}`, error.message)
             }
         }
 
         // Validation error (e.g., missing required field or wrong type)
         if (error instanceof Prisma.PrismaClientValidationError) {
-            return res.status(400).json({
-                error: 'Invalid input data. Check the provided fields and types.',
-                details: error.message,
-            })
+            return ResponseHelper.validationError(res, 'Invalid input data. Check the provided fields and types.', error.message)
         }
 
         // Initialization error (e.g., DB connection or schema issues)
         if (error instanceof Prisma.PrismaClientInitializationError) {
-            return res.status(500).json({
-                error: 'Prisma failed to initialize. Check database connection or configuration.',
-                details: error.message,
-            })
+            return ResponseHelper.internalServerError(res, 'Prisma failed to initialize. Check database connection or configuration.', error.message)
         }
 
         // Unknown request error
         if (error instanceof Prisma.PrismaClientUnknownRequestError) {
-            return res.status(500).json({
-                error: 'Unknown Prisma request error.',
-                details: error.message,
-            })
+            return ResponseHelper.internalServerError(res, 'Unknown Prisma request error.', error.message)
         }
 
         // Rust panic (engine crash)
         if (error instanceof Prisma.PrismaClientRustPanicError) {
-            return res.status(500).json({
-                error: 'Prisma query engine crashed. Restart application and check logs.',
-                details: error.message,
-            })
+            return ResponseHelper.internalServerError(res, 'Prisma query engine crashed. Restart application and check logs.', error.message)
         }
-    }
-
-    static handleValidationError(res: Response, message: string) {
-        return res.status(400).json({ error: message })
-    }
-
-    static handleAuthenticationError(res: Response, message: string) {
-        return res.status(401).json({ error: message })
-    }
-
-    static handleAuthorizationError(res: Response, message: string) {
-        return res.status(403).json({ error: message })
-    }
-
-    static handleNotFound(res: Response, message: string) {
-        return res.status(404).json({ error: message })
     }
 }
