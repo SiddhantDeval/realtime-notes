@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express'
+import cors from 'cors'
 // import helmet from 'helmet'
 // import cors from 'cors'
 // import compression from 'compression'
@@ -29,7 +30,7 @@ export function createApp() {
     // Security, compression, CORS
     // app.use(helmet())
     // app.use(compression())
-    // app.use(cors(serverConfig?.cors ?? { origin: '*' }))
+    app.use(cors(serverConfig?.cors ?? { origin: '*' }))
 
     // Body parsers
     app.use(express.json({ limit: '10mb' }))
@@ -43,6 +44,7 @@ export function createApp() {
 
     // Mount API routes. If you don't have a routes file, create a quick example below.
     if (apiRoutes) {
+        app.use('/health', (req, res) => res.json({ status: 'ok' }))
         app.use('/api/v1', apiRoutes)
     } else {
         const router = express.Router()
