@@ -2,16 +2,16 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 // import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 // import { TanStackDevtools } from "@tanstack/react-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-import Header from "../components/Header";
+import { useState, useEffect } from "react";
 
 // src/routes/__root.tsx
 /// <reference types="vite/client" />
 // other imports...
-
 import appCss from "@/styles.css?url";
-import { useState, useEffect } from "react";
+
+import Header from "../components/Header";
 import Footer from "@/components/Footer";
+import { Toaster } from "sonner";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -55,7 +55,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
   // Create a client
   const queryClient = new QueryClient();
-  
+
   return (
     <html lang="en">
       <head>
@@ -78,6 +78,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           ]}
         /> */}
           <Scripts />
+          <Toaster position="top-center" expand={true} richColors />
         </body>
       </QueryClientProvider>
     </html>
