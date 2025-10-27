@@ -1,3 +1,4 @@
+import Notes from "@/Views/Notes";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/notes/")({
@@ -5,5 +6,5 @@ export const Route = createFileRoute("/notes/")({
 });
 
 function RouteComponent() {
-  return <p>Welcome</p>;
+  return <Notes />;
 }

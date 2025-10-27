@@ -15,7 +15,7 @@ export default function Home() {
           </div>
 
           <div className="flex  flex-wrap justify-center gap-4 lg:justify-start">
-            <Link to="/register" className="inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-primary focus-visible:outline-[--color-surface-primary]">
+            <Link to="/register" className="inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-primary focus-visible:outline-surface-primary">
               <span className="truncate">Get Started</span>
             </Link>
    
