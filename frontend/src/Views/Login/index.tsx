@@ -1,16 +1,57 @@
-// src/routes/Login.tsx
 import { EyeClosedIcon, EyeIcon } from "lucide-react";
 import logo from "@/logo.svg?inline";
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
-import Input from "@/components/Input";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { ControlledInput } from "@/components/Input";
+import { useMutation } from "@tanstack/react-query";
+import { Api } from "@/apis";
+import { toast } from "sonner"; 
+import { z } from "zod";
+import { useForm } from "@tanstack/react-form";
+
+export const loginSchema = z.object({
+  email: z.email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+  // .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  // .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  // .regex(/[0-9]/, "Password must contain at least one number")
+  // .regex(/[!@#$%^&*]/, "Password must contain at least one special character (!@#$%^&*)")
+});
 
 export default function Login() {
+  const navigate = useNavigate();
   const [showPwd, setShowPwd] = useState(false);
+  const { mutateAsync: loginMutation, isPending: isLoading } = useMutation({ mutationFn: Api.client.login });
+
+  useEffect(() => {
+    if (isLoading) {
+      toast.loading("Logging in...", { id: "loading" });
+    } else {
+      toast.dismiss("loading");
+    }
+  }, [isLoading]);
+
+  const form = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    validators: {
+      onChange: loginSchema,
+    },
+    onSubmit: async ({ value }) => {
+      const { data, error } = await loginMutation(value);
+      if (error) return toast.error(error);
+
+      toast.success("Logged in successfully");
+      navigate({ to: "/notes" });
+      console.log("login user data:", data);
+    },
+  });
 
   return (
     <div className="min-h-[calc(100dvh-121px-65px)] md:min-h-[calc(100dvh-65px-65px)] w-full flex items-center justify-center p-4">
-      <div className="w-full max-w-md p-8 md:p-12 bg-white dark:bg-surface-dark/50 rounded-3xl shadow-lg dark:shadow-[#1F2937]">
+      <div className="w-full max-w-md p-8 md:p-12 dark:bg-surface-dark/50 rounded-3xl dark:shadow-[#1F2937]">
         {/* Logo / Icon */}
         <div className="flex flex-col items-center text-center gap-6">
           <div className="flex items-center justify-center rounded-full">
@@ -31,35 +72,39 @@ export default function Login() {
         <form
           className="mt-8 space-y-6"
           onSubmit={(e) => {
-            e.preventDefault(); /* handle login */
+            e.preventDefault();
+            form.handleSubmit();
           }}
         >
           {/* Email */}
-          <Input label="Email" name="email" type="email" autoComplete="email" required placeholder="Enter your email" />
-          {/* Password*/}
-          <Input
-            label="Password"
+          <form.Field
+            name="email"
+            children={(field) => (
+              <ControlledInput label="Email" type="email" placeholder="Enter your email" field={field} />
+            )}
+          />
+          {/* Password */}
+          <form.Field
             name="password"
-            type={showPwd ? "text" : "password"}
-            autoComplete="current-password"
-            required
-            placeholder="Enter your password"
-            endContent={
-              <button
-                type="button"
-                onClick={() => setShowPwd((v) => !v)}
-                className="p-2 cursor-pointer flex items-center text-text-default dark:text-gray-400"
-                aria-label={showPwd ? "Hide password" : "Show password"}
-              >
-    
-                {showPwd ? (
-                  /* visibility icon */
-                  <EyeIcon className="h-5 w-5" />
-                ) : (
-                  <EyeClosedIcon className="h-5 w-5" />
-                )}
-              </button>
-            }
+            children={(field) => (
+              <ControlledInput
+                label="Password"
+                type={showPwd ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder="Enter your password"
+                field={field}
+                endContent={
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd((v) => !v)}
+                    className="p-2 cursor-pointer flex items-center text-text-default dark:text-gray-400"
+                    aria-label={showPwd ? "Hide password" : "Show password"}
+                  >
+                    {showPwd ? <EyeIcon className="h-5 w-5" /> : <EyeClosedIcon className="h-5 w-5" />}
+                  </button>
+                }
+              />
+            )}
           />
 
           {/* Actions */}
@@ -102,7 +147,10 @@ export default function Login() {
         <div className="mt-8 text-center">
           <p className="text-base text-text-secondary dark:text-gray-300">
             Don’t have an account?{"  "}
-            <Link to="/register" className="font-bold hover:underline text-surface-primary/90 dark:text-surface-primary">
+            <Link
+              to="/register"
+              className="font-bold hover:underline text-surface-primary/90 dark:text-surface-primary"
+            >
               Sign up
             </Link>
           </p>
