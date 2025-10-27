@@ -108,9 +108,9 @@ export default function Notes() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 ">
               {[...dummyNotes, ...dummyNotes, ...dummyNotes, ...dummyNotes, ...dummyNotes, ...dummyNotes].map(
-                (note) => (
+                (note, index) => (
                   <NoteCard
-                    key={note.id}
+                    key={`note-${index}`}
                     title={note.title}
                     lastActivity={note.lastActivity}
                     teamMembers={note.teamMembers}

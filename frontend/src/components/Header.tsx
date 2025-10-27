@@ -23,7 +23,7 @@ export default function Header(props: HeaderProps) {
           <Link to="/" className="fill-current">
             <img src={logo} alt="SyncNotes" className="h-10 w-10 fill-current" />
           </Link>
-          <h2 className="text-xl font-bold">SyncNotes</h2>
+          <span className="text-xl font-bold">SyncNotes</span>
         </h1>
         <div className="flex-1" />
         <nav className="hidden md:flex gap-4 items-center ">
