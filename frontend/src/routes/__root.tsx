@@ -1,6 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 // import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 // import { TanStackDevtools } from "@tanstack/react-devtools";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import Header from "../components/Header";
 
@@ -8,7 +9,7 @@ import Header from "../components/Header";
 /// <reference types="vite/client" />
 // other imports...
 
-import appCss from "@/styles.css?url"
+import appCss from "@/styles.css?url";
 import { useState, useEffect } from "react";
 import Footer from "@/components/Footer";
 
@@ -52,16 +53,20 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
   };
 
+  // Create a client
+  const queryClient = new QueryClient();
+  
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
-      <body>
-        <Header theme={theme} toggleTheme={toggleTheme} />
-        <main>{children}</main>
-        <Footer />
-        {/* <TanStackDevtools
+      <QueryClientProvider client={queryClient}>
+        <body>
+          <Header theme={theme} toggleTheme={toggleTheme} />
+          <main>{children}</main>
+          <Footer />
+          {/* <TanStackDevtools
           config={{
             position: "bottom-right",
           }}
@@ -72,8 +77,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             },
           ]}
         /> */}
-        <Scripts />
-      </body>
+          <Scripts />
+        </body>
+      </QueryClientProvider>
     </html>
   );
 }
