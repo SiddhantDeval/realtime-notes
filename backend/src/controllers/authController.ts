@@ -5,9 +5,9 @@ import { AuthService } from '@/services'
 export default class AuthController {
     static register = async (req: Request, res: Response) => {
         try {
-            const { email, password } = req.body
+            const { email, password, full_name } = req.body
 
-            const payload = await AuthService.register(email, password)
+            const payload = await AuthService.register({ email, passwordPlain: password, full_name })
 
             ResponseHelper.success(res, payload)
         } catch (error) {

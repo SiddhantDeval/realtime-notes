@@ -1,22 +1,23 @@
 import prisma from '@/models/client'
-import { AuthHelper } from '@/helpers'
+import { AuthHelper, ResponseHelper } from '@/helpers'
 import { User } from '@prisma-client/prisma'
 
 export default class AuthService {
-    static register = async (email: string, passwordPlain: string) => {
+    static register = async (data: { email: string; passwordPlain: string; full_name: string }) => {
         const existingUser = await prisma.user.findUnique({
-            where: { email },
+            where: { email: data.email },
         })
 
         if (existingUser) {
             throw new Error('User with this email already exists')
         }
 
-        const hashedPassword = await AuthHelper.hashPassword(passwordPlain)
+        const hashedPassword = await AuthHelper.hashPassword(data.passwordPlain)
 
         const user = await prisma.user.create({
             data: {
-                email,
+                email: data.email,
+                full_name: data.full_name,
                 password_hash: hashedPassword,
             },
         })
@@ -28,10 +29,13 @@ export default class AuthService {
     static login = async (email: string, passwordPlain: string) => {
         const user = await prisma.user.findUnique({
             where: { email },
+            omit: {
+                password_hash: false, // The password_hash field is now selected.
+            },
         })
 
         if (!user) {
-            throw new Error('Invalid email or password')
+            throw new Error('User not found, please register first')
         }
 
         const isPasswordValid = await AuthHelper.comparePassword(passwordPlain, user.password_hash)
@@ -40,7 +44,10 @@ export default class AuthService {
         }
 
         const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })
-        return { user, token }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password_hash, ...rest } = user
+        
+        return { user: rest, token }
     }
 
     static getUserById = async (userId: User['id']) => {

@@ -3,7 +3,7 @@ import { AuthController } from '@/controllers'
 import { authMiddleware } from '@/middlewares'
 const router = Router()
 
-router.get('/login', AuthController.login)
+router.post('/login', AuthController.login)
 router.post('/register', AuthController.register)
 router.get('/me', authMiddleware, AuthController.me)
 

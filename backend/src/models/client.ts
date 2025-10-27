@@ -1,6 +1,10 @@
 import { PrismaClient } from '@prisma-client/prisma'
 
-const prisma =  new PrismaClient()
+const omitConfig = {
+    user: { password_hash: true },
+} as const
+
+const prisma = new PrismaClient({ omit: omitConfig })
 
 export default prisma
 
