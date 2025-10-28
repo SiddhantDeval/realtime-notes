@@ -6,6 +6,7 @@ import { authConfig } from '@/config'
 export default class AuthHelper {
     static jwtSecret = authConfig.jwtSecret!
     static jwtExpiratrionTime = Number(authConfig.jwtExpirationTime)
+    static jwtRefreshExpirationTime = Number(authConfig.jwtRefreshExpirationTime)
 
     static generateJwtToken = (user: Pick<User, 'id' | 'email'>) => {
         const token = jwt.sign({ userId: user.id, email: user.email }, AuthHelper.jwtSecret, {
@@ -13,6 +14,13 @@ export default class AuthHelper {
         })
         return token
     }
+    static generateRefreshToken = (user: Pick<User, 'id' | 'email'>) => {
+        const token = jwt.sign({ userId: user.id, email: user.email }, AuthHelper.jwtSecret, {
+            expiresIn: AuthHelper.jwtRefreshExpirationTime,
+        })
+        return token
+    }
+    
     static verifyJwtToken = (token: string) => {
         try {
             const decoded = jwt.verify(token, AuthHelper.jwtSecret)

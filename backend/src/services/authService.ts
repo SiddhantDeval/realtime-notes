@@ -1,6 +1,7 @@
 import prisma from '@/models/client'
-import { AuthHelper, ResponseHelper } from '@/helpers'
+import { AuthHelper } from '@/helpers'
 import { User } from '@prisma-client/prisma'
+import CustomError from '@/helpers/customError'
 
 export default class AuthService {
     static register = async (data: { email: string; passwordPlain: string; full_name: string }) => {
@@ -35,12 +36,12 @@ export default class AuthService {
         })
 
         if (!user) {
-            throw new Error('User not found, please register first')
+            throw new CustomError('Invalid email or password', 401)
         }
 
         const isPasswordValid = await AuthHelper.comparePassword(passwordPlain, user.password_hash)
         if (!isPasswordValid) {
-            throw new Error('Invalid email or password')
+            throw new CustomError('Invalid email or password', 401)
         }
 
         const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })

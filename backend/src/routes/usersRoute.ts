@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
         })
         ResponseHelper.success(res, user, 201)
     } catch (error) {
-        ErrorHelper.handleError(res, error)
+        ResponseHelper.error(res, error)
     }
 })
 
@@ -22,7 +22,7 @@ router.get('/', authMiddleware, async (req, res) => {
         const users = await prisma.user.findMany()
         ResponseHelper.success(res, users)
     } catch (error) {
-        ErrorHelper.handleError(res, error)
+        ResponseHelper.error(res, error)
     }
 })
 
@@ -39,7 +39,7 @@ router.get('/:id', async (req, res) => {
 
         ResponseHelper.success(res, user)
     } catch (error) {
-        ErrorHelper.handleError(res, error)
+        ResponseHelper.error(res, error)
     }
 })
 
@@ -52,7 +52,7 @@ router.put('/:id', async (req, res) => {
         })
         ResponseHelper.success(res, user)
     } catch (error) {
-        ErrorHelper.handleError(res, error)
+        ResponseHelper.error(res, error)
     }
 })
 
@@ -64,7 +64,7 @@ router.delete('/:id', async (req, res) => {
         })
         ResponseHelper.success(res, { message: 'User deleted successfully' }, 204)
     } catch (error) {
-        ErrorHelper.handleError(res, error)
+        ResponseHelper.error(res, error)
     }
 })
 
