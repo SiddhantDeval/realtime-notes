@@ -203,6 +203,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // refresh if we come back foreground and are within the leeway
     const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        clearRefreshTimer(); // cancel scheduled refresh.
+        return;
+      }
       if (document.visibilityState !== "visible") return;
       const expMs = getTokenExpiryMs(user?.token);
       if (!expMs) return;
