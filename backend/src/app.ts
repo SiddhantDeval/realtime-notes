@@ -10,6 +10,7 @@ import { serverConfig } from '@/config'
 
 // Example route imports (adjust to your project)
 import apiRoutes from '@/routes' // your router that mounts /api/v1
+import cookieParser from 'cookie-parser'
 // If you don't have ./routes, replace with a simple router below
 
 // Simple structured logger - replace with pino/winston as needed
@@ -35,6 +36,7 @@ export function createApp() {
     // Body parsers
     app.use(express.json({ limit: '10mb' }))
     app.use(express.urlencoded({ extended: true }))
+    app.use(cookieParser())
 
     // Simple request logger (for dev)
     app.use((req: Request, _res: Response, next: NextFunction) => {

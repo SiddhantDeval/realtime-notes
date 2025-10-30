@@ -22,7 +22,7 @@ export const serverConfig: ServerConfig = {
             }
             return cb(null, true)
         },
-        // credentials: true, // required if you use cookies/auth
+        credentials: true, // required if you use cookies/auth
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
         exposedHeaders: ['Content-Length', 'X-Request-Id'],

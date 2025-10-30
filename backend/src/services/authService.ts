@@ -36,22 +36,56 @@ export default class AuthService {
         })
 
         if (!user) {
-            throw new CustomError('Invalid email or password', 401)
+            throw new CustomError('user_not_found', 401, 'User not found')
         }
 
         const isPasswordValid = await AuthHelper.comparePassword(passwordPlain, user.password_hash)
         if (!isPasswordValid) {
-            throw new CustomError('Invalid email or password', 401)
+            throw new CustomError('invalid_credentials', 401, 'Invalid email or password')
         }
 
         const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })
+        const refreshToken = AuthHelper.generateRefreshToken({ id: user.id, email: user.email })
+
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password_hash, ...rest } = user
-        
-        return { user: rest, token }
+
+        return { user: rest, token, refreshToken }
     }
 
-    static getUserById = async (userId: User['id']) => {
+    static logout = async () => {
+        // Invalidate the refresh token by deleting it from the database
+        // await prisma.refreshToken.deleteMany({
+        //     where: {
+        //         userId: userId,
+        //     },
+        // })
+
+        return true
+    }
+
+    static refreshToken = async (refreshToken: string) => {
+        const decoded = AuthHelper.verifyJwtToken(refreshToken)
+        if (!decoded || typeof decoded === 'string') {
+            throw new CustomError('invalid_refresh_token', 401, 'Invalid refresh token')
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: { id: true },
+        })
+
+        if (!user) {
+            throw new CustomError('user_not_found', 404, 'User not found')
+        }
+
+        const token = AuthHelper.generateJwtToken({ id: decoded.userId, email: decoded.email })
+        // const newRefreshToken = AuthHelper.generateRefreshToken({ id: user.id, email: user.email })
+
+        return { token }
+    }
+
+    static me = async (userId: User['id']) => {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: {
