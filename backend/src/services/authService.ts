@@ -24,7 +24,8 @@ export default class AuthService {
         })
 
         const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })
-        return { user, token }
+        const refreshToken = AuthHelper.generateRefreshToken({ id: user.id, email: user.email })
+        return { user, token, refreshToken }
     }
 
     static login = async (email: string, passwordPlain: string) => {

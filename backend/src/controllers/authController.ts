@@ -14,8 +14,8 @@ export default class AuthController {
         try {
             const { email, password, full_name } = req.body
 
-            const { user, token } = await AuthService.register({ email, passwordPlain: password, full_name })
-            // res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV !== 'development' })
+            const { user, token, refreshToken } = await AuthService.register({ email, passwordPlain: password, full_name })
+            AuthController.addCookies(res, refreshToken)
 
             ResponseHelper.success(res, { user, token })
         } catch (error) {
@@ -54,7 +54,7 @@ export default class AuthController {
 
             const user = await AuthService.me(req.user.userId)
             if (!user) return ResponseHelper.notFound(res, 'User not found')
-                
+
             ResponseHelper.success(res, user)
         } catch (error) {
             ResponseHelper.error(res, error)
@@ -68,7 +68,7 @@ export default class AuthController {
                 return ResponseHelper.unauthorized(res, 'No refresh token provided')
             }
             const { token } = await AuthService.refreshToken(refreshToken)
-            
+
             ResponseHelper.success(res, { token })
         } catch (error) {
             ResponseHelper.error(res, error)
