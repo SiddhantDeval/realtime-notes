@@ -2,7 +2,7 @@ import jwt, {type SignOptions} from 'jsonwebtoken'
 import * as bcrypt from 'bcrypt'
 import { type User } from '@prisma-client/prisma'
 import { authConfig } from '@/config'
-
+import CustomError from './customError'
 export default class AuthHelper {
     static jwtSecret = authConfig.jwtSecret
     static jwtExpiresIn = authConfig.jwtExpiresIn as SignOptions['expiresIn']
@@ -20,15 +20,22 @@ export default class AuthHelper {
         })
         return token
     }
-    
+
     static verifyJwtToken = (token: string) => {
         try {
             const decoded = jwt.verify(token, AuthHelper.jwtSecret)
             return decoded as DECODED
-        } catch (_error) {
-            return null
+        } catch (error) {
+            if (error instanceof jwt.TokenExpiredError) {
+                throw new CustomError('token_expired', 401, 'Token expired')
+            }
+            if (error instanceof jwt.JsonWebTokenError) {
+                throw new CustomError('invalid_token', 401, 'Invalid token')
+            }
+            throw new CustomError('failed_to_authenticate_token', 401, 'Failed to authenticate token')
         }
     }
+
     static decodeJwtToken = (token: string) => {
         try {
             const decoded = jwt.decode(token)
