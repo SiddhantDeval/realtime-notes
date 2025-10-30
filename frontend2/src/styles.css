@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* .background-doc {
+    primary: #4F46E5;
+    muted: #F9FAFB;
+    dark: #131121;
+    dark-light: #23186b;
+}
+
+.text-doc {
+    primary: #111827;
+    secondary: #4B5563;
+    secondary-dark: #d1d5dc;
+    inverse: #FFFFFF;
+    default: #5F6368;
+}
+
+.border-doc {
+    default: #E5E7EB;
+    dark: #374151;
+    light: #DADCE0;
+} */
+
+/* ===========================
+   SyncNotes Design Tokens
+   =========================== */
+@theme {
+    /* 🎨 Colors */
+    --color-surface-primary: #4F46E5;
+    --color-surface-muted: #F9FAFB;
+    --color-surface-muted-dark: #f6f6f8;
+    --color-surface-dark: #131121;
+    
+
+
+    --color-text-primary: #111827;
+    --color-text-secondary: #4B5563;
+    --color-text-secondary-dark: #d1d5dc;
+    /* white */
+    --color-text-inverse: #FFFFFF;
+    --color-text-default: #5F6368;
+
+    
+    --color-border-default: #E5E7EB;
+    /* gray-200 */
+    --color-border-weak: rgb(75 85 99 / 0.30);
+    /* white/10 for dark footer line */
+    --color-border-default: #DADCE0;
+    /* light border */
+    --color-border-dark: #374151;
+}
+
+/* ===========================
+   Base + Dark Mode mapping
+   =========================== */
+@layer base {
+    :root {
+        color-scheme: light;
+        background: var(--color-surface-muted);
+        color: var(--color-text-primary);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+            "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji",
+            "Segoe UI Symbol", "Noto Color Emoji";
+    }
+
+    .dark {
+        --color-surface-muted: var(--color-surface-dark);
+        --color-border-default: var(--color-border-dark);
+        --color-text-primary: var(--color-text-inverse);
+        --color-text-secondary: var(--color-text-secondary-dark);
+
+        /* gray-300-ish */
+        --color-text-strong: #ffffff;
+    }
+}
+
+/* ===========================
+   Primitives used in the page
+   =========================== */
+@layer components {
+    .container-max {
+        max-width: var(--container-max);
+        margin-inline: auto;
+        padding-inline: 1rem;
+    }
+
+    .btn-primary {
+        background: var(--color-surface-primary);
+        color: var(--color-text-inverse);
+        box-shadow: var(--shadow-brand-lg);
+    }
+
+    .btn-primary:hover {
+        filter: brightness(0.95);
+    }
+
+    .btn-ghost {
+        background: transparent;
+        color: var(--color-text-primary);
+        border: 1px solid var(--color-border-weak);
+    }
+
+    .btn-ghost:hover {
+        @apply bg-gray-100 dark:bg-white/10;
+    }
+}
