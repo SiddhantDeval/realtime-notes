@@ -1,22 +1,22 @@
-import jwt from 'jsonwebtoken'
+import jwt, {type SignOptions} from 'jsonwebtoken'
 import * as bcrypt from 'bcrypt'
 import { type User } from '@prisma-client/prisma'
 import { authConfig } from '@/config'
 
 export default class AuthHelper {
-    static jwtSecret = authConfig.jwtSecret!
-    static jwtExpiratrionTime = Number(authConfig.jwtExpirationTime)
-    static jwtRefreshExpirationTime = Number(authConfig.jwtRefreshExpirationTime)
+    static jwtSecret = authConfig.jwtSecret
+    static jwtExpiresIn = authConfig.jwtExpiresIn as SignOptions['expiresIn']
+    static jwtRefreshExpiresIn = authConfig.jwtRefreshExpiresIn as SignOptions['expiresIn']
 
     static generateJwtToken = (user: Pick<User, 'id' | 'email'>) => {
         const token = jwt.sign({ userId: user.id, email: user.email }, AuthHelper.jwtSecret, {
-            expiresIn: AuthHelper.jwtExpiratrionTime,
+            expiresIn: AuthHelper.jwtExpiresIn,
         })
         return token
     }
     static generateRefreshToken = (user: Pick<User, 'id' | 'email'>) => {
         const token = jwt.sign({ userId: user.id, email: user.email }, AuthHelper.jwtSecret, {
-            expiresIn: AuthHelper.jwtRefreshExpirationTime,
+            expiresIn: AuthHelper.jwtRefreshExpiresIn,
         })
         return token
     }
