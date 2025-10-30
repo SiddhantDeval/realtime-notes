@@ -131,7 +131,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await logout();
         return;
       }
-      applyNewSession(data);
+      const existing = readAuth();
+      applyNewSession({ user: existing?.user!, token: data.token });
 
       // // (Optional) fetch profile post-refresh
       // try {
