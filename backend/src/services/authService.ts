@@ -91,6 +91,7 @@ export default class AuthService {
             select: {
                 id: true,
                 email: true,
+                full_name: true,
                 created_at: true,
                 updated_at: true,
             },

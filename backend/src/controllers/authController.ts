@@ -54,6 +54,7 @@ export default class AuthController {
 
             const user = await AuthService.me(req.user.userId)
             if (!user) return ResponseHelper.notFound(res, 'User not found')
+                
             ResponseHelper.success(res, user)
         } catch (error) {
             ResponseHelper.error(res, error)
