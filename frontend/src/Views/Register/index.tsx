@@ -1,14 +1,16 @@
-// src/routes/Login.tsx
+"use client";
+
+import Link from "next/link";
 import { EyeClosedIcon, EyeIcon } from "lucide-react";
-import logo from "@/logo.svg?inline";
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+
+import { useState } from "react";
+
 import { ControlledInput } from "@/components/Input";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Api } from "@/apis";
-import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 const signupSchema = z
   .object({
@@ -30,16 +32,8 @@ const signupSchema = z
 export default function Register() {
   const [showPwd, setShowPwd] = useState(false);
   const [showCPwd, setSetshowCPwd] = useState(false);
-  const navigate = useNavigate();
-  const { mutateAsync: registerMutation, isPending: isLoading } = useMutation({ mutationFn: Api.client.register });
+  const router = useRouter();
 
-  useEffect(() => {
-    if (isLoading) {
-      toast.loading("Logging in...", { id: "loading" });
-    } else {
-      toast.dismiss("loading");
-    }
-  }, [isLoading]);
 
   const form = useForm({
     defaultValues: {
@@ -53,7 +47,7 @@ export default function Register() {
       onChange: signupSchema,
     },
     onSubmit: async ({ value }) => {
-      const { data, error } = await registerMutation({
+      const { data, error } = await Api.client.register({
         full_name: value.fullName,
         email: value.email,
         password: value.password,
@@ -62,7 +56,7 @@ export default function Register() {
 
       console.log("register user data:", data);
       toast.success("Account created successfully!");
-      navigate({ to: "/login" });
+      router.push("/login");
     },
   });
 
@@ -73,10 +67,10 @@ export default function Register() {
         <div className="flex flex-col items-center text-center gap-2">
           <div className="mb-4 flex items-center justify-center rounded-full">
             <Link
-              to="/"
+              href="/"
               className="fill-current text-xl font-semibold flex items-center gap-3 text-text-primary-light dark:text-text-primary-dark"
             >
-              <img src={logo} alt="SyncNotes" className="h-10 w-10 fill-current" />
+              <img src="/assets/logo.svg" alt="SyncNotes" className="h-10 w-10 fill-current" />
               <span className="text-xl font-bold">SyncNotes</span>
             </Link>
           </div>
@@ -94,24 +88,19 @@ export default function Register() {
           }}
         >
           {/* name */}
-          <form.Field
-            name="fullName"
-            children={(field) => (
+          <form.Field name="fullName">
+            {(field) => (
               <ControlledInput label="Full Name" type="text" placeholder="Enter your full name" field={field} />
             )}
-          />
+          </form.Field>
 
           {/* Email */}
-          <form.Field
-            name="email"
-            children={(field) => (
-              <ControlledInput label="Email" type="email" placeholder="Enter your email" field={field} />
-            )}
-          />
+          <form.Field name="email">
+            {(field) => <ControlledInput label="Email" type="email" placeholder="Enter your email" field={field} />}
+          </form.Field>
           {/* Password */}
-          <form.Field
-            name="password"
-            children={(field) => (
+          <form.Field name="password">
+            {(field) => (
               <ControlledInput
                 label="Password"
                 type={showPwd ? "text" : "password"}
@@ -130,10 +119,9 @@ export default function Register() {
                 }
               />
             )}
-          />
-          <form.Field
-            name="confirmPassword"
-            children={(field) => (
+          </form.Field>
+          <form.Field name="confirmPassword">
+            {(field) => (
               <ControlledInput
                 label="Confirm Password"
                 type={showCPwd ? "text" : "password"}
@@ -152,11 +140,10 @@ export default function Register() {
                 }
               />
             )}
-          />
+          </form.Field>
           {/* Agree */}
-          <form.Field
-            name="isAgree"
-            children={(field) => (
+          <form.Field name="isAgree">
+            {(field) => (
               <div className="ml-1 flex flex-col items-start gap-2">
                 <div className="flex items-center gap-2">
                   <input
@@ -184,7 +171,7 @@ export default function Register() {
                 </div>
               </div>
             )}
-          />
+          </form.Field>
           {/* Actions */}
           <div className="pt-2 space-y-4">
             <button
@@ -225,7 +212,7 @@ export default function Register() {
         <div className="mt-8 text-center">
           <p className="text-base text-text-secondary dark:text-gray-300">
             Already have an account?{"  "}
-            <Link to="/login" className="font-bold hover:underline text-surface-primary/90 dark:text-surface-primary">
+            <Link href="/login" className="font-bold hover:underline text-surface-primary/90 dark:text-surface-primary">
               Login
             </Link>
           </p>

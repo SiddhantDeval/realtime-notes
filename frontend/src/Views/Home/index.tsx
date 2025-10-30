@@ -1,4 +1,5 @@
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
+
 
 export default function Home() {
   return (
@@ -15,12 +16,12 @@ export default function Home() {
           </div>
 
           <div className="flex  flex-wrap justify-center gap-4 lg:justify-start">
-            <Link to="/register" className="inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-primary focus-visible:outline-surface-primary">
+            <Link href="/register" className="inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-primary focus-visible:outline-surface-primary">
               <span className="truncate">Get Started</span>
             </Link>
    
             <Link
-              to="/login"
+              href="/login"
               className="inline-flex items-center justify-center font-bold px-6 py-3 rounded-2xl btn-ghost focus-visible:outline-[--color-surface-primary]"
             >
               <span className="truncate">Login</span>

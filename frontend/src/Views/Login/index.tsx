@@ -1,12 +1,15 @@
+"use client";
 import { EyeClosedIcon, EyeIcon } from "lucide-react";
-import logo from "@/logo.svg?inline";
+
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+
 import { ControlledInput } from "@/components/Input";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
 import { useAuth } from "@/utils/auth";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export const loginSchema = z.object({
   email: z.email("Invalid email address"),
@@ -18,15 +21,15 @@ export const loginSchema = z.object({
 });
 
 export default function Login() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { isAuthenticated, login } = useAuth();
   const [showPwd, setShowPwd] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate({ to: "/notes" });
-    }
-  }, [isAuthenticated]);
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     router.push("/notes");
+  //   }
+  // }, [isAuthenticated, router]);
 
   const form = useForm({
     defaultValues: {
@@ -41,7 +44,7 @@ export default function Login() {
       login(value.email, value.password);
       toast.dismiss("loading");
       toast.success("Logged in successfully", { id: "success" });
-      navigate({ to: "/notes" });
+      router.push("/notes");
     },
   });
 
@@ -52,10 +55,10 @@ export default function Login() {
         <div className="flex flex-col items-center text-center gap-6">
           <div className="flex items-center justify-center rounded-full">
             <Link
-              to="/"
+              href="/"
               className="fill-current text-xl font-semibold flex items-center gap-3 text-text-primary-light dark:text-text-primary-dark"
             >
-              <img src={logo} alt="SyncNotes" className="h-10 w-10 fill-current" />
+              <img src="/assets/logo.svg" alt="SyncNotes" className="h-10 w-10 fill-current" />
               <span className="text-xl font-bold">SyncNotes</span>
             </Link>
           </div>
@@ -73,9 +76,8 @@ export default function Login() {
           }}
         >
           {/* Email */}
-          <form.Field
-            name="email"
-            children={(field) => (
+          <form.Field name="email">
+            {(field) => (
               <ControlledInput
                 label="Email"
                 type="email"
@@ -85,11 +87,10 @@ export default function Login() {
                 autoComplete="email"
               />
             )}
-          />
+          </form.Field>
           {/* Password */}
-          <form.Field
-            name="password"
-            children={(field) => (
+          <form.Field name="password">
+            {(field) => (
               <ControlledInput
                 label="Password"
                 type={showPwd ? "text" : "password"}
@@ -109,7 +110,7 @@ export default function Login() {
                 }
               />
             )}
-          />
+          </form.Field>
 
           {/* Actions */}
           <div className="pt-2 space-y-4">
@@ -152,7 +153,7 @@ export default function Login() {
           <p className="text-base text-text-secondary dark:text-gray-300">
             Don’t have an account?{"  "}
             <Link
-              to="/register"
+              href="/register"
               className="font-bold hover:underline text-surface-primary/90 dark:text-surface-primary"
             >
               Sign up

@@ -1,3 +1,5 @@
+"use client"
+
 import React, { createContext, useContext, useEffect, useMemo, useCallback, useState, useRef } from "react";
 import { toast } from "sonner";
 import { Api } from "@/apis";
