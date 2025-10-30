@@ -10,208 +10,240 @@ type PrismaErrors =
     | Prisma.PrismaClientRustPanicError
 
 type ResponseSuccessType<T> = {
-    success: boolean
+    success: true
     status: number
     data: T
 }
 
 type ResponseErrorType = {
-    success: boolean
+    success: false
     error: string
     status: number
     details?: unknown
+    errorCode?: string | number
 }
 
+type ApiResponse<T> = Response<ResponseSuccessType<T> | ResponseErrorType>
+
+const HTTP = {
+    OK: 200,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    CONFLICT: 409,
+    UNPROCESSABLE: 422,
+    SERVER_ERROR: 500,
+} as const
+
+// ---- helpers ---------------------------------------------------------------
+
+const send = <T>(res: Response, status: number, body: ResponseSuccessType<T> | ResponseErrorType): ApiResponse<T> =>
+    res.status(status).json(body)
+
+const isPrismaKnown = (e: unknown): e is Prisma.PrismaClientKnownRequestError => e instanceof Prisma.PrismaClientKnownRequestError
+
+const isAnyPrisma = (e: unknown): e is PrismaErrors =>
+    e instanceof Prisma.PrismaClientKnownRequestError ||
+    e instanceof Prisma.PrismaClientValidationError ||
+    e instanceof Prisma.PrismaClientInitializationError ||
+    e instanceof Prisma.PrismaClientUnknownRequestError ||
+    e instanceof Prisma.PrismaClientRustPanicError
+
+// Map of Prisma known error codes to status + message builder.
+const PRISMA_KNOWN_MAP: Record<string, (err: Prisma.PrismaClientKnownRequestError) => { status: number; message: string }> = {
+    P2002: (e) => ({
+        status: HTTP.CONFLICT,
+        message: `Unique constraint failed on field: ${e.meta?.target}`,
+    }),
+    P2003: (e) => ({
+        status: HTTP.BAD_REQUEST,
+        message: `Foreign key constraint failed on field: ${e.meta?.field_name}`,
+    }),
+    P2000: (e) => ({
+        status: HTTP.BAD_REQUEST,
+        message: `Value too long for: ${e.meta?.column_name}`,
+    }),
+    P2001: (e) => ({
+        status: HTTP.NOT_FOUND,
+        message: `Record not found. ${e.meta?.modelName ? `Model: ${e.meta?.modelName}.` : ''} ${e.meta?.details || ''}`.trim(),
+    }),
+    P2004: (e) => ({
+        status: HTTP.SERVER_ERROR,
+        message: `Constraint failed: ${e.meta?.constraint}`,
+    }),
+    P2005: (e) => ({
+        status: HTTP.BAD_REQUEST,
+        message: `Invalid data type in field: ${e.meta?.field_name}`,
+    }),
+    P2010: (e) => ({
+        status: HTTP.SERVER_ERROR,
+        message: `Raw query failed: ${e.message}`,
+    }),
+    P2011: (e) => ({
+        status: HTTP.BAD_REQUEST,
+        message: `Null constraint violation: ${e.meta?.constraint}`,
+    }),
+    P2012: (e) => ({
+        status: HTTP.BAD_REQUEST,
+        message: `Missing required value: ${e.meta?.path}`,
+    }),
+    P2013: (e) => ({
+        status: HTTP.BAD_REQUEST,
+        message: `Missing required argument ${e.meta?.argument_name} for ${e.meta?.function_name}`,
+    }),
+    P2014: (e) => ({
+        status: HTTP.BAD_REQUEST,
+        message: `Invalid relation between records: ${e.message}`,
+    }),
+    P2025: (e) => ({
+        status: HTTP.NOT_FOUND,
+        message: `Record to update or delete not found. ${e.meta?.cause || ''}`.trim(),
+    }),
+}
+
+// ---- class -----------------------------------------------------------------
+
 export default class ResponseHelper {
-    /**
-     * Sends a standardized JSON success response.
-     * @template T - Type of data payload being returned.
-     * @param res - Express response object.
-     * @param data - The data to send in the response body.
-     * @param status - HTTP status code (default: 200).
-     * @returns JSON response: { success: true, status, data }
-     */
-    static success<T>(res: Response, data: T, status: number = 200): Response<ResponseSuccessType<T>> {
-        return res.status(status).json({ success: true, status, data })
+    // Success
+    static success<T>(res: Response, data: T, status: number = HTTP.OK): ApiResponse<T> {
+        return send<T>(res, status, { success: true, status, data })
     }
 
-    /**
-     * Sends a standardized JSON error response.
-     * @param res - Express response object.
-     * @param message - Error message for the client.
-     * @param status - HTTP status code (default: 500).
-     * @param details - Optional additional details (e.g., stack trace or validation errors).
-     * @returns JSON response: { success: false, error, status, details }
-     */
-    static error(
-        res: Response,
-        error: unknown | typeof CustomError | PrismaErrors | Error | string,
-        status: number = 500,
-        details?: unknown
-    ): Response<ResponseErrorType> {
-        if (
-            error instanceof Prisma.PrismaClientKnownRequestError ||
-            error instanceof Prisma.PrismaClientValidationError ||
-            error instanceof Prisma.PrismaClientInitializationError ||
-            error instanceof Prisma.PrismaClientUnknownRequestError ||
-            error instanceof Prisma.PrismaClientRustPanicError
-        ) {
-            return ResponseHelper.prismaErrors(res, error)
+    // Public error facade (accepts unknown)
+    static error(res: Response, error: unknown, status: number = HTTP.SERVER_ERROR, details?: unknown): ApiResponse<never> {
+        // eslint-disable-next-line no-console
+        console.error(error)
+
+        return this.fromError(res, error, status, details)
+    }
+
+    // Thin convenience wrappers
+    static badRequest(res: Response, message = 'Bad Request', details?: unknown) {
+        return this.error(res, message, HTTP.BAD_REQUEST, details)
+    }
+    static unauthorized(res: Response, message = 'Unauthorized', details?: unknown) {
+        return this.error(res, message, HTTP.UNAUTHORIZED, details)
+    }
+    static forbidden(res: Response, message = 'Forbidden', details?: unknown) {
+        return this.error(res, message, HTTP.FORBIDDEN, details)
+    }
+    static notFound(res: Response, message = 'Not Found', details?: unknown) {
+        return this.error(res, message, HTTP.NOT_FOUND, details)
+    }
+    static conflict(res: Response, message = 'Conflict', details?: unknown) {
+        return this.error(res, message, HTTP.CONFLICT, details)
+    }
+    static internalServerError(res: Response, message = 'Internal Server Error', details?: unknown) {
+        return this.error(res, message, HTTP.SERVER_ERROR, details)
+    }
+    static validationError(res: Response, message = 'Validation Error', details?: unknown) {
+        return this.error(res, message, HTTP.UNPROCESSABLE, details)
+    }
+
+    // ---- internals -----------------------------------------------------------
+
+    private static fromError(res: Response, error: unknown, fallbackStatus: number, details?: unknown): ApiResponse<never> {
+        if (isAnyPrisma(error)) {
+            return this.prismaErrors(res, error)
         }
+
         if (error instanceof CustomError) {
-            return res.status(error.status).json({ success: false, error: error.message, status: error.status, details: error.details })
+            const status = error.status || fallbackStatus
+            return send(res, status, {
+                success: false,
+                status,
+                error: error.message,
+                errorCode: error.errorCode,
+                details: error.details ?? details,
+            })
         }
+
         if (error instanceof Error) {
-            return res.status(status).json({ success: false, error: error.message, status, details })
+            return send(res, fallbackStatus, {
+                success: false,
+                status: fallbackStatus,
+                error: error.message,
+                details,
+            })
         }
+
         if (typeof error === 'string') {
-            return res.status(status).json({ success: false, error, status, details })
+            return send(res, fallbackStatus, {
+                success: false,
+                status: fallbackStatus,
+                error,
+                details,
+            })
         }
-        return res.status(status).json({ success: false, error: 'An unexpected error occurred.', status, details })
+
+        return send(res, fallbackStatus, {
+            success: false,
+            status: fallbackStatus,
+            error: 'An unexpected error occurred.',
+            details,
+        })
     }
 
-    /**
-     * Sends a standardized 400 Bad Request response.
-     * @param res - Express response object.
-     * @param message - Optional error message (default: 'Bad Request').
-     * @param details - Optional details about the error.
-     */
-    static badRequest(res: Response, message: string = 'Bad Request', details?: unknown) {
-        return ResponseHelper.error(res, message, 400, details)
-    }
-
-    /**
-     * Sends a standardized 401 Unauthorized response.
-     * @param res - Express response object.
-     * @param message - Optional error message (default: 'Unauthorized').
-     * @param details - Optional details about the error.
-     */
-    static unauthorized(res: Response, message: string = 'Unauthorized', details?: unknown) {
-        return ResponseHelper.error(res, message, 401, details)
-    }
-
-    /**
-     * Sends a standardized 403 Forbidden response.
-     * @param res - Express response object.
-     * @param message - Optional error message (default: 'Forbidden').
-     * @param details - Optional details about the error.
-     */
-    static forbidden(res: Response, message: string = 'Forbidden', details?: unknown) {
-        return ResponseHelper.error(res, message, 403, details)
-    }
-
-    /**
-     * Sends a standardized 404 Not Found response.
-     * @param res - Express response object.
-     * @param message - Optional error message (default: 'Not Found').
-     * @param details - Optional details about the error.
-     */
-    static notFound(res: Response, message: string = 'Not Found', details?: unknown) {
-        return ResponseHelper.error(res, message, 404, details)
-    }
-
-    /**
-     * Sends a standardized 409 Conflict response.
-     * @param res - Express response object.
-     * @param message - Optional error message (default: 'Conflict').
-     * @param details - Optional details about the error.
-     */
-    static conflict(res: Response, message: string = 'Conflict', details?: unknown) {
-        return ResponseHelper.error(res, message, 409, details)
-    }
-
-    /**
-     * Sends a standardized 500 Internal Server Error response.
-     * @param res - Express response object.
-     * @param message - Optional error message (default: 'Internal Server Error').
-     * @param details - Optional details about the error.
-     */
-    static internalServerError(res: Response, message: string = 'Internal Server Error', details?: unknown) {
-        return ResponseHelper.error(res, message, 500, details)
-    }
-
-    /**
-     * Sends a standardized 422 Validation Error response.
-     * Commonly used for invalid user input or schema validation failures.
-     * @param res - Express response object.
-     * @param message - Optional error message (default: 'Validation Error').
-     * @param details - Optional validation details.
-     */
-    static validationError(res: Response, message: string = 'Validation Error', details?: unknown) {
-        return ResponseHelper.error(res, message, 422, details)
-    }
-
-    static prismaErrors(res: Response, error: PrismaErrors) {
-        // Prisma Known Request Error (e.g., constraint violations)
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            switch (error.code) {
-                case 'P2002':
-                    return ResponseHelper.conflict(res, `Unique constraint failed on the field: ${error.meta?.target}`)
-
-                case 'P2003':
-                    return ResponseHelper.badRequest(res, `Foreign key constraint failed on field: ${error.meta?.field_name}`)
-
-                case 'P2000':
-                    return ResponseHelper.badRequest(res, `The provided value for a column is too long. Field: ${error.meta?.column_name}`)
-
-                case 'P2001':
-                    return ResponseHelper.notFound(
-                        res,
-                        `Record not found. ${error.meta?.modelName ? `Model: ${error.meta?.modelName}.` : ''} ${error.meta?.details || ''}`
-                    )
-
-                case 'P2004':
-                    return ResponseHelper.internalServerError(res, `The constraint failed on the database: ${error.meta?.constraint}`)
-
-                case 'P2005':
-                    return ResponseHelper.badRequest(res, `The data in the ${error.meta?.field_name} field does not match the expected type.`)
-
-                case 'P2010':
-                    return ResponseHelper.internalServerError(res, `Raw query failed. ${error.message}`)
-
-                case 'P2014':
-                    return ResponseHelper.badRequest(res, `Invalid relation between records. ${error.message}`)
-
-                case 'P2011':
-                    return ResponseHelper.badRequest(res, `Null constraint violation on the  ${error.meta?.constraint} field.`)
-
-                case 'P2012':
-                    return ResponseHelper.badRequest(res, `Missing a required value at ${error.meta?.path}.`)
-
-                case 'P2013':
-                    return ResponseHelper.badRequest(
-                        res,
-                        `Missing the required argument ${error.meta?.argument_name} for the ${error.meta?.function_name} function.`
-                    )
-
-                case 'P2025':
-                    return ResponseHelper.notFound(res, `Record to update or delete not found. ${error.meta?.cause || ''}`)
-
-                default:
-                    return ResponseHelper.internalServerError(res, `An unexpected Prisma error occurred. Code: ${error.code}`, error.message)
+    private static prismaErrors(res: Response, error: PrismaErrors): ApiResponse<never> {
+        // Known request errors by code
+        if (isPrismaKnown(error)) {
+            const build = PRISMA_KNOWN_MAP[error.code]
+            if (build) {
+                const { status, message } = build(error)
+                return send(res, status, { success: false, status, error: message })
             }
+            // Unknown known-code
+            return send(res, HTTP.SERVER_ERROR, {
+                success: false,
+                status: HTTP.SERVER_ERROR,
+                error: `Unexpected Prisma error: ${error.code}`,
+                details: error.message,
+            })
         }
 
-        // Validation error (e.g., missing required field or wrong type)
+        // Other Prisma error classes
         if (error instanceof Prisma.PrismaClientValidationError) {
-            return ResponseHelper.validationError(res, 'Invalid input data. Check the provided fields and types.', error.message)
+            return send(res, HTTP.UNPROCESSABLE, {
+                success: false,
+                status: HTTP.UNPROCESSABLE,
+                error: 'Invalid input data. Check the provided fields and types.',
+                details: error.message,
+            })
         }
 
-        // Initialization error (e.g., DB connection or schema issues)
         if (error instanceof Prisma.PrismaClientInitializationError) {
-            return ResponseHelper.internalServerError(res, 'Prisma failed to initialize. Check database connection or configuration.', error.message)
+            return send(res, HTTP.SERVER_ERROR, {
+                success: false,
+                status: HTTP.SERVER_ERROR,
+                error: 'Prisma failed to initialize. Check database connection or configuration.',
+                details: error.message,
+            })
         }
 
-        // Unknown request error
         if (error instanceof Prisma.PrismaClientUnknownRequestError) {
-            return ResponseHelper.internalServerError(res, 'Unknown Prisma request error.', error.message)
+            return send(res, HTTP.SERVER_ERROR, {
+                success: false,
+                status: HTTP.SERVER_ERROR,
+                error: 'Unknown Prisma request error.',
+                details: error.message,
+            })
         }
 
-        // Rust panic (engine crash)
         if (error instanceof Prisma.PrismaClientRustPanicError) {
-            return ResponseHelper.internalServerError(res, 'Prisma query engine crashed. Restart application and check logs.', error.message)
+            return send(res, HTTP.SERVER_ERROR, {
+                success: false,
+                status: HTTP.SERVER_ERROR,
+                error: 'Prisma query engine crashed. Restart application and check logs.',
+                details: error.message,
+            })
         }
-        // Default case
-        return ResponseHelper.error(res, 'An unexpected Prisma error occurred.')
+
+        // Fallback
+        return send(res, HTTP.SERVER_ERROR, {
+            success: false,
+            status: HTTP.SERVER_ERROR,
+            error: 'An unexpected Prisma error occurred.',
+        })
     }
 }
