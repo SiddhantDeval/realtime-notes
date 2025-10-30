@@ -64,7 +64,7 @@ export class Api {
     return this.fetch("/auth/me", { method: "GET" });
   };
 
-  refreshToken = async () => {
+  refreshToken = async (): Promise<Response<any>>=> {
     return this.fetch("/auth/refresh-token", { method: "POST" });
   };
 }
