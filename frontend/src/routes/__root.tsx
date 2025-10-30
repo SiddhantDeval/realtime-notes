@@ -12,6 +12,7 @@ import appCss from "@/styles.css?url";
 import Header from "../components/Header";
 import Footer from "@/components/Footer";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/utils/auth";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -61,12 +62,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <QueryClientProvider client={queryClient}>
-        <body>
-          <Header theme={theme} toggleTheme={toggleTheme} />
-          <main>{children}</main>
-          <Footer />
-          {/* <TanStackDevtools
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <body>
+            <Header theme={theme} toggleTheme={toggleTheme} />
+            <main>{children}</main>
+            <Footer />
+            {/* <TanStackDevtools
           config={{
             position: "bottom-right",
           }}
@@ -77,10 +79,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             },
           ]}
         /> */}
-          <Scripts />
-          <Toaster position="top-center" expand={true} richColors />
-        </body>
-      </QueryClientProvider>
+            <Scripts />
+            <Toaster position="top-center" expand={true} richColors />
+          </body>
+        </QueryClientProvider>
+      </AuthProvider>
     </html>
   );
 }

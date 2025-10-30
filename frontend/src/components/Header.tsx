@@ -3,12 +3,14 @@ import logo from "../logo.svg?inline";
 
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Home, Menu, Network, SquareFunction, StickyNote, X } from "lucide-react";
+import { useAuth } from "@/utils/auth";
 
 interface HeaderProps {
   toggleTheme?: () => void;
   theme?: "light" | "dark";
 }
 export default function Header(props: HeaderProps) {
+  const { isAuthenticated,logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [groupedExpanded, setGroupedExpanded] = useState<Record<string, boolean>>({});
 
@@ -61,9 +63,10 @@ export default function Header(props: HeaderProps) {
                 // className: "flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors",
               }
             }
+            onClick={logout}
           >
-            <SquareFunction size={20} />
-            <span className="font-medium">Login</span>
+            {/* <SquareFunction size={20} /> */}
+            <span className="font-medium">{isAuthenticated ? 'Logout' : 'Login'}</span>
           </Link>
           {/* theme toggle  */}
           <button

@@ -3,11 +3,10 @@ import logo from "@/logo.svg?inline";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ControlledInput } from "@/components/Input";
-import { useMutation } from "@tanstack/react-query";
-import { Api } from "@/apis";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
+import { useAuth } from "@/utils/auth";
 
 export const loginSchema = z.object({
   email: z.email("Invalid email address"),
@@ -20,16 +19,14 @@ export const loginSchema = z.object({
 
 export default function Login() {
   const navigate = useNavigate();
+  const { isAuthenticated, login } = useAuth();
   const [showPwd, setShowPwd] = useState(false);
-  const { mutateAsync: loginMutation, isPending: isLoading } = useMutation({ mutationFn: Api.client.login });
 
   useEffect(() => {
-    if (isLoading) {
-      toast.loading("Logging in...", { id: "loading" });
-    } else {
-      toast.dismiss("loading");
+    if (isAuthenticated) {
+      navigate({ to: "/notes" });
     }
-  }, [isLoading]);
+  }, [isAuthenticated]);
 
   const form = useForm({
     defaultValues: {
@@ -40,12 +37,11 @@ export default function Login() {
       onChange: loginSchema,
     },
     onSubmit: async ({ value }) => {
-      const { data, error } = await loginMutation(value);
-      if (error) return toast.error(error);
-
-      toast.success("Logged in successfully");
+      toast.loading("Logging in...", { id: "loading" });
+      login(value.email, value.password);
+      toast.dismiss("loading");
+      toast.success("Logged in successfully", { id: "success" });
       navigate({ to: "/notes" });
-      console.log("login user data:", data);
     },
   });
 
@@ -80,7 +76,14 @@ export default function Login() {
           <form.Field
             name="email"
             children={(field) => (
-              <ControlledInput label="Email" type="email" placeholder="Enter your email" field={field} />
+              <ControlledInput
+                label="Email"
+                type="email"
+                placeholder="Enter your email"
+                field={field}
+                aria-label="email"
+                autoComplete="email"
+              />
             )}
           />
           {/* Password */}
@@ -90,9 +93,10 @@ export default function Login() {
               <ControlledInput
                 label="Password"
                 type={showPwd ? "text" : "password"}
-                autoComplete="new-password"
+                autoComplete="password"
                 placeholder="Enter your password"
                 field={field}
+                aria-label="Password"
                 endContent={
                   <button
                     type="button"
