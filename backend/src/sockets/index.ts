@@ -3,7 +3,8 @@ import { Server as HttpServer } from 'http' // Updated import to avoid conflict 
 import jwt from 'jsonwebtoken'
 import { serverConfig } from '@/config'
 import NoteService from '@/services/noteService'
-import { NoteRole } from '@prisma/client'
+import type { NoteRole } from '@prisma/client'
+import { $Enums } from '@prisma/client'
 import PermissionService from '@/services/permissionService'
 
 // Define socket data types
@@ -87,7 +88,7 @@ export function initSocketServer(httpServer: any) {
              // Check permission (must be EDITOR or OWNER)
              // Check permission (must be EDITOR or OWNER)
              const note = await NoteService.getNote(noteId, userId!)
-             if (!note || !PermissionService.hasPermission(note.role as any, NoteRole.EDITOR)) {
+             if (!note || !PermissionService.hasPermission(note.role as any, $Enums.NoteRole.EDITOR)) {
                  socket.emit('error', { message: 'Permission denied' })
                  return
              }

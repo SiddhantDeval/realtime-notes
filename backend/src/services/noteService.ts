@@ -1,5 +1,6 @@
 import prisma from '@/models/client'
-import { NoteRole, NoteVisibility } from '@prisma/client'
+import type { NoteRole, NoteVisibility } from '@prisma/client'
+import { $Enums } from '@prisma/client'
 import PermissionService from '@/services/permissionService'
 
 export default class NoteService {
@@ -11,12 +12,12 @@ export default class NoteService {
             data: {
                 title: data.title,
                 latestContent: data.content || '',
-                visibility: data.visibility || NoteVisibility.PRIVATE,
+                visibility: data.visibility || $Enums.NoteVisibility.PRIVATE,
                 ownerId: userId,
                 permissions: {
                     create: {
                         userId: userId,
-                        role: NoteRole.OWNER,
+                        role: $Enums.NoteRole.OWNER,
                     },
                 },
             },
@@ -43,20 +44,20 @@ export default class NoteService {
 
         const role = permission?.role ?? null
 
-        if (note.visibility === NoteVisibility.PRIVATE && !role) {
+        if (note.visibility === $Enums.NoteVisibility.PRIVATE && !role) {
             return null // No access
         }
 
         // If public/link sharing implemented later, logic goes here.
         // For now, strict check:
-        if (!PermissionService.canView(role) && note.visibility !== NoteVisibility.PUBLIC) {
+        if (!PermissionService.canView(role) && note.visibility !== $Enums.NoteVisibility.PUBLIC) {
              // Also check if owner (implicit in permission usually, but good to be safe)
              if (note.ownerId !== userId) return null
         }
 
         return {
             ...note,
-            role: role || (note.ownerId === userId ? NoteRole.OWNER : null),
+            role: role || (note.ownerId === userId ? $Enums.NoteRole.OWNER : null),
         }
     }
 
