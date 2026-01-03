@@ -55,12 +55,19 @@ It supports **both REST APIs and WebSockets**, allowing reliable CRUD operations
 
 ## 4. Authentication & Sessions
 
-### Google Authentication
-To enable Google Login, you must provide:
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
+### Google Authentication Setup
+To enable Google Login:
 
-The callback URL is `/api/v1/auth/google/callback`.
+1. Create a project in **Google Cloud Console**.
+2. Setup **OAuth 2.0 Client ID**.
+3. Configure **Authorized JavaScript Origins**:
+   - `http://localhost:3000` (Frontend URL)
+4. Configure **Authorized Redirect URIs**:
+   - `http://localhost:4001/api/v1/auth/google/callback` (Backend URL + /api/v1/auth/google/callback)
+   - *Note: If API_VERSION is changed from 'v1', update the URI accordingly.*
+5. Set environment variables in `.env`:
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
 
 ### Flow
 
