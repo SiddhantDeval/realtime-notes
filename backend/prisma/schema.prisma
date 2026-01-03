@@ -1,20 +1,209 @@
+// =====================================================
+// Prisma Schema — Annotated with Descriptions
+// Realtime Collaborative Notes (Backend)
+// =====================================================
+// This schema follows best practices for:
+// - Realtime collaboration
+// - Safe versioning & idempotent ops
+// - Clear authorization model
+// - Production‑friendly design
+// =====================================================
+
+// ------------------ Generator & Datasource ------------------
+
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js" // Generates Prisma Client for DB access
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql"       // PostgreSQL recommended for locking & concurrency
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            Int       @id @default(autoincrement())
-  full_name     String?   @db.VarChar(100)
-  email         String    @unique @db.VarChar(255)
-  password_hash String    @db.VarChar(255)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+// ------------------ ENUMS ------------------
 
-  @@map("users")
+enum NoteRole {
+  OWNER   // Full control: edit, share, delete
+  EDITOR  // Can edit content
+  VIEWER  // Read-only access
+}
+
+enum NoteVisibility {
+  PRIVATE // Only invited users
+  LINK    // Accessible via share link
+  PUBLIC  // Publicly visible (optional)
+}
+
+enum OperationStatus {
+  PENDING // Received but not yet applied
+  APPLIED // Successfully applied to note
+  REJECTED // Rejected due to version conflict
+}
+
+// ------------------ USER & AUTH ------------------
+
+model User {
+  id        String   @id @default(uuid()) // Primary identifier
+  email     String   @unique              // Login identifier
+  name      String?                       // Display name
+  password  String                        // Hashed password
+  avatarUrl String?                       // Optional profile image
+
+  isActive  Boolean  @default(true)       // Soft disable account
+
+  createdAt DateTime @default(now())      // Account creation time
+  updatedAt DateTime @updatedAt           // Last profile update
+
+  // Relations
+  ownedNotes  Note[]           @relation("OwnerNotes") // Notes created by user
+  permissions NotePermission[]             // Notes shared with user
+  sessions    Session[]                    // Login sessions
+  operations  NoteOperation[]              // Edits authored by user
+}
+
+model Session {
+  id               String   @id @default(uuid()) // Session ID
+  userId           String                       // Owner user
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  refreshTokenHash String   // Hashed refresh token
+  userAgent        String?  // Browser / device info
+  ipAddress        String?  // Client IP (optional)
+
+  expiresAt        DateTime // Token expiration
+  revoked          Boolean  @default(false) // Manual logout / revoke
+
+  createdAt        DateTime @default(now()) // Session creation
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ------------------ NOTE (CANONICAL STATE) ------------------
+
+model Note {
+  id            String          @id @default(uuid()) // Note identifier
+  ownerId       String                           // Creator of note
+  owner         User            @relation("OwnerNotes", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  title         String                           // Note title
+  latestContent String?                          // Canonical content (TEXT / JSON)
+  version       Int             @default(1)      // Current server version
+
+  visibility    NoteVisibility  @default(PRIVATE) // Access scope
+  isDeleted     Boolean         @default(false)   // Soft delete flag
+
+  createdAt     DateTime        @default(now())   // Creation time
+  updatedAt     DateTime        @updatedAt        // Last edit time
+
+  // Relations
+  permissions   NotePermission[] // Who can access this note
+  operations    NoteOperation[]  // Realtime edit log
+  versions      NoteVersion[]    // Snapshot history
+  shareLinks    ShareLink[]      // Public / link-based access
+
+  @@index([ownerId])
+  @@index([updatedAt])
+}
+
+// ------------------ ACCESS CONTROL ------------------
+
+model NotePermission {
+  id        String   @id @default(uuid()) // Permission row ID
+
+  noteId    String                       // Note being shared
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  userId    String                       // User receiving access
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role      NoteRole @default(VIEWER)    // Level of access
+
+  invitedBy String?                      // Inviter user ID
+  invitedAt DateTime @default(now())     // Invitation time
+  acceptedAt DateTime?                   // When invite accepted
+
+  @@unique([noteId, userId])             // One role per user per note
+  @@index([userId])
+}
+
+// ------------------ REALTIME EDIT OPERATIONS ------------------
+
+model NoteOperation {
+  id            String           @id @default(uuid()) // DB row ID
+
+  noteId        String                          // Target note
+  note          Note             @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  opId          String                          // Client-generated UUID
+  authorId      String                          // User who made the edit
+  author        User             @relation(fields: [authorId], references: [id])
+
+  ops           Json                            // Atomic text operations
+  clientVersion Int                             // Version client edited from
+  serverVersion Int?                            // Version after apply
+
+  status        OperationStatus  @default(PENDING) // Apply result
+
+  createdAt     DateTime         @default(now())   // When op received
+  appliedAt     DateTime?                         // When op applied
+
+  @@unique([noteId, opId])      // Ensures idempotency
+  @@index([noteId, createdAt]) // Fast recent-op lookup
+}
+
+// ------------------ VERSION SNAPSHOTS ------------------
+
+model NoteVersion {
+  id              String   @id @default(uuid()) // Snapshot ID
+
+  noteId          String                       // Associated note
+  note            Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  versionNumber   Int                          // Version at snapshot
+  snapshotContent String?                      // Full content snapshot
+
+  createdBy       String?                      // User who triggered snapshot
+  createdAt       DateTime @default(now())     // Snapshot time
+
+  @@unique([noteId, versionNumber])            // One snapshot per version
+  @@index([noteId, versionNumber])
+}
+
+// ------------------ SHAREABLE LINKS ------------------
+
+model ShareLink {
+  id        String   @id @default(uuid()) // Link ID
+
+  noteId    String                       // Shared note
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  token     String   @unique              // Public access token
+  role      NoteRole @default(VIEWER)     // Granted role
+
+  expiresAt DateTime?                     // Expiry (optional)
+  maxUses   Int?                          // Usage cap (optional)
+  uses      Int      @default(0)          // Current usage count
+
+  createdAt DateTime @default(now())      // Creation time
+
+  @@index([noteId])
+  @@index([expiresAt])
+}
+
+// ------------------ AUDIT LOG (OPTIONAL) ------------------
+
+model AuditLog {
+  id         String   @id @default(uuid()) // Log ID
+  actorId    String?                       // User who acted
+
+  action     String                        // Action name (e.g. NOTE_EDIT)
+  entityType String                        // Target entity type
+  entityId   String?                       // Target entity ID
+
+  meta       Json?                         // Extra context
+
+  createdAt  DateTime @default(now())      // Action timestamp
+
+  @@index([createdAt])
 }
