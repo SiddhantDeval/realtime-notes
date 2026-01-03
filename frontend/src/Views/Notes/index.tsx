@@ -1,3 +1,7 @@
+'use client'
+
+import NoteCard from "@/components/NoteCard";
+import { useState } from "react";
 const dummyNotes = [
   {
     id: "1",
@@ -27,8 +31,9 @@ const dummyNotes = [
     ],
   },
 ];
-import NoteCard from "@/components/NoteCard";
+
 export default function Notes() {
+  const [search, setSearch] = useState("");
   return (
     <div className="bg-surface-muted-dark dark:bg-surface-primary min-h-[calc(100dvh-121px-65px)] md:min-h-[calc(100dvh-65px-65px)] h-full overflow-y-hidden">
       <div className="relative  lg:flex">
@@ -39,37 +44,48 @@ export default function Notes() {
                 <div
                   className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
                   data-alt="SyncNotes app logo, a stylized letter S inside a circle"
-                  // style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCkYdhdMThoGbFIt9mbzcJ_ktDC_ym0DMvh9NlDQhvHUr-XCptWh0LJPcrMqPGpxQhzRNkRf1Q2CC0b-9BBjCZh9C3a6yP5CL8RHJ2q8Uf1K21bP0mjfCKNklLVDjPdh7o96eEv04BfRBgJ2FLmu0X7DWpu2Xx18zfKzSgNa9ma8HOGW-tgYGo7PH0PLIJeP7w888BE6XCFAkw8vsj-Xp0c4GRqrUcq0Hh2oj9aGQX9nXQQ0ibC0aWnMvJiN813sqhh0dFPzDax-Fwo');"
-                  style={{
-                    backgroundImage:
-                      "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDUA97my9r3v9o56ysIm0qGZy9MhibpcZ5g08EQ4vXPTO-UBfctA7eE5MZB5N1tlaFpNoXlPfDzzK9sqxQVZpjjFcaJoFLNkzNibDW_l8EGR_gOnyw5MZ9RardcOCWGVg7afF4s_VlcexODAuEjSTS3GxfuZXwnFrgIeQkClXlSes7B6TQig8odNPbHGDIRpU0qz8dKaP3PCKlclJH3B8X66IaNDq08yS8wfnVNK4hkTaUJltOolFURhp0oiE16ICgky6b6YfXZ76Gp')",
-                  }}
+                  // // style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCkYdhdMThoGbFIt9mbzcJ_ktDC_ym0DMvh9NlDQhvHUr-XCptWh0LJPcrMqPGpxQhzRNkRf1Q2CC0b-9BBjCZh9C3a6yP5CL8RHJ2q8Uf1K21bP0mjfCKNklLVDjPdh7o96eEv04BfRBgJ2FLmu0X7DWpu2Xx18zfKzSgNa9ma8HOGW-tgYGo7PH0PLIJeP7w888BE6XCFAkw8vsj-Xp0c4GRqrUcq0Hh2oj9aGQX9nXQQ0ibC0aWnMvJiN813sqhh0dFPzDax-Fwo');"
+                  // style={{
+                  //   backgroundImage:
+                  //     "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDUA97my9r3v9o56ysIm0qGZy9MhibpcZ5g08EQ4vXPTO-UBfctA7eE5MZB5N1tlaFpNoXlPfDzzK9sqxQVZpjjFcaJoFLNkzNibDW_l8EGR_gOnyw5MZ9RardcOCWGVg7afF4s_VlcexODAuEjSTS3GxfuZXwnFrgIeQkClXlSes7B6TQig8odNPbHGDIRpU0qz8dKaP3PCKlclJH3B8X66IaNDq08yS8wfnVNK4hkTaUJltOolFURhp0oiE16ICgky6b6YfXZ76Gp')",
+                  // }}
                 ></div>
                 <div className="flex flex-col">
-                  <h1 className="text-[#0f0e1b] dark:text-white text-base font-bold leading-normal">SyncNotes</h1>
+                  <h1 className="text-[#0f0e1b] dark:text-white text-base font-bold leading-normal">
+                    SyncNotes
+                  </h1>
                   <p className="text-[#564f96] dark:text-gray-400 text-sm font-normal leading-normal">
                     Collaborative Workspace
                   </p>
                 </div>
               </div>
               <nav className="flex flex-col gap-2">
-                <a className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" href="#">
+                <a
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary"
+                  href="#"
+                >
                   {/* <span className="material-symbols-outlined text-primary text-2xl">description</span> */}
-                  <span className="text-primary text-sm font-medium leading-normal">All Notes</span>
+                  <span className="text-primary text-sm font-medium leading-normal">
+                    All Notes
+                  </span>
                 </a>
                 <a
                   className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                   href="#"
                 >
                   {/* <span className="material-symbols-outlined text-[#0f0e1b] dark:text-white text-2xl">star</span> */}
-                  <span className="text-[#0f0e1b] dark:text-white text-sm font-medium leading-normal">Favorites</span>
+                  <span className="text-[#0f0e1b] dark:text-white text-sm font-medium leading-normal">
+                    Favorites
+                  </span>
                 </a>
                 <a
                   className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                   href="#"
                 >
                   {/* <span className="material-symbols-outlined text-[#0f0e1b] dark:text-white text-2xl">settings</span> */}
-                  <span className="text-[#0f0e1b] dark:text-white text-sm font-medium leading-normal">Settings</span>
+                  <span className="text-[#0f0e1b] dark:text-white text-sm font-medium leading-normal">
+                    Settings
+                  </span>
                 </a>
               </nav>
             </div>
@@ -79,7 +95,9 @@ export default function Notes() {
                 href="#"
               >
                 {/* <span className="material-symbols-outlined text-[#0f0e1b] dark:text-white text-2xl">logout</span> */}
-                <span className="text-[#0f0e1b] dark:text-white text-sm font-medium leading-normal">Logout</span>
+                <span className="text-[#0f0e1b] dark:text-white text-sm font-medium leading-normal">
+                  Logout
+                </span>
               </a>
             </div>
           </div>
@@ -96,7 +114,8 @@ export default function Notes() {
                     <input
                       className="form-input flex w-full min-w-0 flex-1 overflow-hidden rounded-r-xl text-[#0f0e1b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border-none bg-white dark:bg-[#1f1d33] h-full placeholder:text-[#564f96] dark:placeholder:text-gray-400 px-4 py-2 pl-2 text-base font-normal leading-normal"
                       placeholder="Search discussions..."
-                      value=""
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
                 </label>
@@ -107,18 +126,23 @@ export default function Notes() {
               </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 ">
-              {[...dummyNotes, ...dummyNotes, ...dummyNotes, ...dummyNotes, ...dummyNotes, ...dummyNotes].map(
-                (note, index) => (
-                  <NoteCard
-                    key={`note-${index}`}
-                    title={note.title}
-                    lastActivity={note.lastActivity}
-                    teamMembers={note.teamMembers}
-                    image={note.image}
-                    memberAvatars={note.memberAvatars}
-                  />
-                )
-              )}
+              {[
+                ...dummyNotes,
+                ...dummyNotes,
+                ...dummyNotes,
+                ...dummyNotes,
+                ...dummyNotes,
+                ...dummyNotes,
+              ].map((note, index) => (
+                <NoteCard
+                  key={`note-${index}`}
+                  title={note.title}
+                  lastActivity={note.lastActivity}
+                  teamMembers={note.teamMembers}
+                  image={note.image}
+                  memberAvatars={note.memberAvatars}
+                />
+              ))}
             </div>
           </div>
         </section>
