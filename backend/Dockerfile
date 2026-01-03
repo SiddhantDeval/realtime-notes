@@ -15,9 +15,9 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 # Install ALL dependencies (including dev) for building and generating
-RUN npm ci
+RUN DATABASE_URL="postgresql://dummy" npm ci
 # Generate Prisma Client
-RUN npx prisma generate
+RUN DATABASE_URL="postgresql://dummy" npx prisma generate
 
 # ==========================================
 # Stage 3: Development

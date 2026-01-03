@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   backend:
@@ -12,19 +12,20 @@ services:
       - ./.env.development:/app/.env.development
       - /app/node_modules
     environment:
-      - DATABASE_URL=postgresql://user:password@postgres:5432/realtime_notes?schema=public
+      - DATABASE_URL=postgresql://sid:1122@postgres:5432/realtime_notes?schema=public
       - NODE_ENV=development
     depends_on:
       - postgres
     command: npm run dev
+    # command: sh -c "npx prisma migrate dev && npm run dev" # Uncomment to auto-migrate on start
 
   postgres:
     image: postgres:15-alpine
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=sid
+      - POSTGRES_PASSWORD=1122
       - POSTGRES_DB=realtime_notes
     volumes:
       - postgres_data:/var/lib/postgresql/data
