@@ -91,7 +91,7 @@ export default class AuthService {
         }
 
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId },
+            where: { id: decoded.id },
             select: { id: true, email: true }, // Select minimal fields
         })
 

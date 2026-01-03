@@ -9,13 +9,13 @@ export default class AuthHelper {
     static jwtRefreshExpiresIn = authConfig.jwtRefreshExpiresIn as SignOptions['expiresIn']
 
     static generateJwtToken = (user: Pick<User, 'id' | 'email'>) => {
-        const token = jwt.sign({ userId: user.id, email: user.email }, AuthHelper.jwtSecret, {
+        const token = jwt.sign({ id: user.id, email: user.email }, AuthHelper.jwtSecret, {
             expiresIn: AuthHelper.jwtExpiresIn,
         })
         return token
     }
     static generateRefreshToken = (user: Pick<User, 'id' | 'email'>) => {
-        const token = jwt.sign({ userId: user.id, email: user.email }, AuthHelper.jwtSecret, {
+        const token = jwt.sign({ id: user.id, email: user.email }, AuthHelper.jwtSecret, {
             expiresIn: AuthHelper.jwtRefreshExpiresIn,
         })
         return token
