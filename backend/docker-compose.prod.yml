@@ -1,0 +1,13 @@
+services:
+  backend:
+    container_name: realtime-notes-backend
+    build:
+      context: .
+      target: production
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL} # Read from host env
+      - JWT_SECRET=${JWT_SECRET}
+    restart: always
