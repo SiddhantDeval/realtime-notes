@@ -30,7 +30,7 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params
         const user = await prisma.user.findUnique({
-            where: { id: Number(id) },
+            where: { id: id },
         })
 
         if (!user) {
@@ -47,7 +47,7 @@ router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params
         const user = await prisma.user.update({
-            where: { id: Number(id) },
+            where: { id: id },
             data: req.body,
         })
         ResponseHelper.success(res, user)
@@ -60,7 +60,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params
         await prisma.user.delete({
-            where: { id: Number(id) },
+            where: { id: id },
         })
         ResponseHelper.success(res, { message: 'User deleted successfully' }, 204)
     } catch (error) {

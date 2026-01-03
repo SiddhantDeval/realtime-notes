@@ -1,6 +1,6 @@
 import jwt, {type SignOptions} from 'jsonwebtoken'
 import * as bcrypt from 'bcrypt'
-import { type User } from '@prisma-client/prisma'
+import { type User } from '@prisma/client'
 import { authConfig } from '@/config'
 import CustomError from './customError'
 export default class AuthHelper {

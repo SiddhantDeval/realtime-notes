@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma-client/prisma'
+import { PrismaClient } from '@prisma/client'
 
 const omitConfig = {
-    user: { password_hash: true },
+    user: { password: true },
 } as const
 
 const prisma = new PrismaClient({ omit: omitConfig })

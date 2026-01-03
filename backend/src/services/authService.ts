@@ -1,6 +1,6 @@
 import prisma from '@/models/client'
 import { AuthHelper } from '@/helpers'
-import { User } from '@prisma-client/prisma'
+import { User } from '@prisma/client'
 import CustomError from '@/helpers/customError'
 
 export default class AuthService {
@@ -18,38 +18,57 @@ export default class AuthService {
         const user = await prisma.user.create({
             data: {
                 email: data.email,
-                full_name: data.full_name,
-                password_hash: hashedPassword,
+                name: data.full_name,
+                password: hashedPassword,
             },
         })
 
         const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })
         const refreshToken = AuthHelper.generateRefreshToken({ id: user.id, email: user.email })
+        
+        // Remove password from returned user object (though global omit might handle it, we're explicit here if needed for specific return type)
+        // With global omit, 'user' does not have 'password' property unless we selected it.
+        // Create returns the object based on args, usually includes all fields.
+        // Actually, prisma.user.create will return the object.
+        // If global omit is set, it might return without password.
+        // But to be safe in logic:
+        // const { password, ...rest } = user
+        // But 'user' type might not have 'password' if omit is in effect? 
+        // No, create returns User.
+        
         return { user, token, refreshToken }
     }
 
     static login = async (email: string, passwordPlain: string) => {
-        const user = await prisma.user.findUnique({
+        // We need password to verify, so we must explicitly select it (implied by global omit)
+        // or select ALL fields including password.
+        const userWithPassword = await prisma.user.findUnique({
             where: { email },
-            omit: {
-                password_hash: false, // The password_hash field is now selected.
-            },
+            select: {
+                id: true,
+                email: true,
+                password: true,
+                name: true,
+                avatarUrl: true,
+                isActive: true,
+                createdAt: true,
+                updatedAt: true
+            }
         })
 
-        if (!user) {
+        if (!userWithPassword) {
             throw new CustomError('user_not_found', 401, 'User not found')
         }
 
-        const isPasswordValid = await AuthHelper.comparePassword(passwordPlain, user.password_hash)
+        const isPasswordValid = await AuthHelper.comparePassword(passwordPlain, userWithPassword.password)
         if (!isPasswordValid) {
             throw new CustomError('invalid_credentials', 401, 'Invalid email or password')
         }
 
-        const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })
-        const refreshToken = AuthHelper.generateRefreshToken({ id: user.id, email: user.email })
+        const token = AuthHelper.generateJwtToken({ id: userWithPassword.id, email: userWithPassword.email })
+        const refreshToken = AuthHelper.generateRefreshToken({ id: userWithPassword.id, email: userWithPassword.email })
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password_hash, ...rest } = user
+        const { password, ...rest } = userWithPassword
 
         return { user: rest, token, refreshToken }
     }
@@ -73,28 +92,29 @@ export default class AuthService {
 
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
-            select: { id: true },
+            select: { id: true, email: true }, // Select minimal fields
         })
 
         if (!user) {
             throw new CustomError('user_not_found', 404, 'User not found')
         }
 
-        const token = AuthHelper.generateJwtToken({ id: decoded.userId, email: decoded.email })
-        // const newRefreshToken = AuthHelper.generateRefreshToken({ id: user.id, email: user.email })
-
+        const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })
+        
         return { token }
     }
 
-    static me = async (userId: User['id']) => {
+    static me = async (userId: string) => {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: {
                 id: true,
                 email: true,
-                full_name: true,
-                created_at: true,
-                updated_at: true,
+                name: true,
+                createdAt: true,
+                updatedAt: true,
+                avatarUrl: true,
+                isActive: true
             },
         })
         return user
