@@ -153,6 +153,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             token: data.token,
             user: data.user || { id: "", email, full_name: "User" } // Fallback
         });
+        
+        // Check for redirect URL stored before login
+        const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
+        if (redirectUrl) {
+          sessionStorage.removeItem("redirectAfterLogin");
+          router.push(redirectUrl);
+        }
+        
         return true;
       }
       return false;

@@ -186,32 +186,7 @@ export default function Note({ noteId }: { noteId: string }) {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display text-[#1F2937] dark:text-gray-200">
-      <header
-        className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark px-4 md:px-8"
-      >
-        <div className="flex items-center gap-3">
-          <div className="size-6 text-primary">
-            {/* Logo SVG */}
-            <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-              <path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"></path>
-            </svg>
-          </div>
-          <h1 className="text-[#1F2937] dark:text-white text-lg font-bold">
-            SyncNotes
-          </h1>
-        </div>
-        
-        <div className="hidden md:flex flex-1 items-center justify-end gap-3">
-          <div className="flex h-10 items-center justify-center gap-2 rounded-lg bg-gray-100 dark:bg-gray-800 px-3 text-sm text-[#6B7281] dark:text-gray-400">
-            <span className="material-symbols-outlined text-green-500">cloud_done</span>
-            <span className="hidden lg:inline">{status}</span>
-          </div>
-          {/* Avatar Placeholder */}
-           <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ml-2" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCh6Tb7je0ToqfgxpsEWNNHYMj2BtiPHxHLSxuKmfFT-M8c_jsZEg22ffHXXpfSx-CfmLyBvK3RuTT4UFwpSvy4LeEQqSd4ZGcSaIiPcajbd3ubJlNo5krrfSGOeIqXq-s6c2FkrIRbCb8M87X8fZNKIhl1ZvJI4t_tKSgngMlHTnOJCmTaEPyMgLEiKrwdt0kvGH9w2we6Cswrq51pzjVvlAI996s-Hu6BaVJfRkk38BukNEw7Wdl3mCkHm-o7IV-zH-2cwsZ1QfRw')"}}></div>
-        </div>
-      </header>
-
+    <div className="relative flex min-h-[calc(100dvh-121px-65px)] md:min-h-[calc(100dvh-65px-65px)] w-full flex-col bg-background-light dark:bg-background-dark font-display text-[#1F2937] dark:text-gray-200">
       <main className="flex flex-1 flex-col lg:flex-row h-full">
         <div className="flex flex-1 flex-col p-4 md:p-8 h-full">
           <div className="mb-6">
