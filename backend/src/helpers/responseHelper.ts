@@ -1,5 +1,5 @@
 import { Response } from 'express'
-import { Prisma } from '@prisma-client/prisma'
+import { Prisma } from '@prisma/client'
 import CustomError from './customError'
 
 type PrismaErrors =
@@ -148,22 +148,24 @@ export default class ResponseHelper {
             return this.prismaErrors(res, error)
         }
 
-        if (error instanceof CustomError) {
-            const status = error.status || fallbackStatus
+        if ((error as any) instanceof CustomError) {
+            const err = error as CustomError
+            const status = err.status || fallbackStatus
             return send(res, status, {
                 success: false,
                 status,
-                error: error.message,
-                errorCode: error.errorCode,
-                details: error.details ?? details,
+                error: err.message,
+                errorCode: err.errorCode,
+                details: err.details ?? details,
             })
         }
 
-        if (error instanceof Error) {
+        if ((error as any) instanceof Error) {
+            const err = error as Error
             return send(res, fallbackStatus, {
                 success: false,
                 status: fallbackStatus,
-                error: error.message,
+                error: err.message,
                 details,
             })
         }

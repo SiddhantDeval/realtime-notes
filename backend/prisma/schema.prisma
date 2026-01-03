@@ -13,11 +13,12 @@
 
 generator client {
   provider = "prisma-client-js" // Generates Prisma Client for DB access
+
 }
 
 datasource db {
   provider = "postgresql"       // PostgreSQL recommended for locking & concurrency
-  url      = env("DATABASE_URL")
+
 }
 
 // ------------------ ENUMS ------------------
