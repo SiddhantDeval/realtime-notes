@@ -3,7 +3,6 @@ import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import prisma from '@/models/client'
 import { AuthHelper } from '@/helpers'
-import { env } from 'process'
 
 export const configurePassport = () => {
     passport.use(
@@ -11,7 +10,7 @@ export const configurePassport = () => {
             {
                 clientID: process.env.GOOGLE_CLIENT_ID || '',
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-                callbackURL: '/api/v1/auth/google/callback', 
+                callbackURL: `${process.env.BACKEND_URL || 'http://localhost:4001'}/api/${process.env.API_VERSION || 'v1'}/auth/google/callback`,
                 passReqToCallback: true,
             },
             async (req, accessToken, refreshToken, profile, done) => {
@@ -48,7 +47,7 @@ export const configurePassport = () => {
         )
     )
     
-    // Serialization (if using sessions, but we might just generate JWT in callback)
+    // Serialization
     passport.serializeUser((user: any, done) => {
         done(null, user.id);
     });

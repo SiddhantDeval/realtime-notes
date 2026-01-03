@@ -35,13 +35,15 @@ export function createApp() {
         next()
     })
 
+    const apiVersion = process.env.API_VERSION || 'v1'
+
     if (apiRoutes) {
         app.use('/health', (req, res) => res.json({ status: 'ok' }))
-        app.use('/api/v1', apiRoutes)
+        app.use(`/api/${apiVersion}`, apiRoutes)
     } else {
         const router = express.Router()
         router.get('/health', (_req, res) => res.json({ status: 'ok' }))
-        app.use('/api/v1', router)
+        app.use(`/api/${apiVersion}`, router)
     }
 
     app.use((req: Request, res: Response) => {
