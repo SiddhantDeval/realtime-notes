@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import { ResponseHelper } from '@/helpers'
-import { AuthService } from '@/services'
+import { ResponseHelper, AuthHelper } from '@/helpers'
+import { AuthService } from '@/services' // Assuming this exports AuthService class
 
 export default class AuthController {
     static addCookies = async (res: Response, refreshToken: string) => {
@@ -51,8 +51,10 @@ export default class AuthController {
     static me = async (req: Request, res: Response) => {
         try {
             if (!req.user) return ResponseHelper.unauthorized(res, 'User not authenticated')
-
-            const user = await AuthService.me(req.user.userId)
+            // @ts-ignore
+            const userId = req.user.userId || req.user.id 
+            
+            const user = await AuthService.me(userId)
             if (!user) return ResponseHelper.notFound(res, 'User not found')
 
             ResponseHelper.success(res, user)
@@ -72,6 +74,26 @@ export default class AuthController {
             ResponseHelper.success(res, { token })
         } catch (error) {
             ResponseHelper.error(res, error)
+        }
+    }
+
+    static googleCallback = async (req: Request, res: Response) => {
+        try {
+            // req.user is populated by passport
+            const user = req.user as any;
+            if (!user) return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+
+            const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email });
+            const refreshToken = AuthHelper.generateRefreshToken({ id: user.id, email: user.email });
+
+            AuthController.addCookies(res, refreshToken);
+
+            // Redirect to frontend with token
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+        } catch (error) {
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            res.redirect(`${frontendUrl}/login?error=server_error`);
         }
     }
 }

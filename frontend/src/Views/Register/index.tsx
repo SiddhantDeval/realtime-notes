@@ -9,7 +9,7 @@ import { ControlledInput } from "@/components/Input";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Api } from "@/apis";
+import { Api } from "@/api";
 import { useRouter } from "next/navigation";
 
 const signupSchema = z
@@ -17,10 +17,6 @@ const signupSchema = z
     fullName: z.string().min(1, "Full name is required"),
     email: z.email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters long"),
-    // .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    // .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    // .regex(/[0-9]/, "Password must contain at least one number")
-    // .regex(/[!@#$%^&*]/, "Password must contain at least one special character (!@#$%^&*)")
     confirmPassword: z.string().min(1, "Confirm Password is required"),
     isAgree: z.boolean().refine((val) => val === true, "You must agree to the terms and conditions"),
   })
@@ -47,16 +43,21 @@ export default function Register() {
       onChange: signupSchema,
     },
     onSubmit: async ({ value }) => {
-      const { data, error } = await Api.client.register({
-        full_name: value.fullName,
-        email: value.email,
-        password: value.password,
-      });
-      if (error) return toast.error(error);
-
-      console.log("register user data:", data);
-      toast.success("Account created successfully!");
-      router.push("/login");
+      try {
+        const res = await Api.client.register({
+          full_name: value.fullName,
+          email: value.email,
+          password: value.password,
+        });
+        const data = res.data;
+        
+        console.log("register user data:", data);
+        toast.success("Account created successfully!");
+        router.push("/login");
+      } catch (error: any) {
+          console.error(error);
+          toast.error(error.error || error.message || "Registration failed");
+      }
     },
   });
 
@@ -183,6 +184,9 @@ export default function Register() {
 
             <button
               type="button"
+              onClick={() => {
+                  window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001/api/v1'}/auth/google`;
+              }}
               className="cursor-pointer w-full inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-ghost"
             >
               <svg className="h-6 w-6 mr-3" viewBox="0 0 24 24" fill="none" aria-hidden="true">

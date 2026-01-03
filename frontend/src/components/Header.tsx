@@ -1,7 +1,7 @@
 "use client";
 import { useState, Activity } from "react";
 import { Home, Menu, StickyNote, X } from "lucide-react";
-import { useAuth } from "@/utils/auth";
+import { useAuth } from "@/context/authContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

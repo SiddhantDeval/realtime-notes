@@ -20,6 +20,7 @@ export const serverConfig: ServerConfig = {
                 }
                 return cb(null, true)
             }
+            console.log('origin', origin)
             return cb(null, true)
         },
         credentials: true, // required if you use cookies/auth

@@ -7,29 +7,19 @@ import { ControlledInput } from "@/components/Input";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
-import { useAuth } from "@/utils/auth";
+import { useAuth } from "@/context/authContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export const loginSchema = z.object({
   email: z.email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters long"),
-  // .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-  // .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-  // .regex(/[0-9]/, "Password must contain at least one number")
-  // .regex(/[!@#$%^&*]/, "Password must contain at least one special character (!@#$%^&*)")
 });
 
 export default function Login() {
   const router = useRouter();
   const { isAuthenticated, login } = useAuth();
   const [showPwd, setShowPwd] = useState(false);
-
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     router.push("/notes");
-  //   }
-  // }, [isAuthenticated, router]);
 
   const form = useForm({
     defaultValues: {
@@ -41,10 +31,18 @@ export default function Login() {
     },
     onSubmit: async ({ value }) => {
       toast.loading("Logging in...", { id: "loading" });
-      login(value.email, value.password);
-      toast.dismiss("loading");
-      toast.success("Logged in successfully", { id: "success" });
-      router.push("/notes");
+      try {
+        await login(value.email, value.password);
+        toast.dismiss("loading");
+        
+        const auth = localStorage.getItem("auth_session");
+        if (auth) {
+           toast.success("Logged in successfully", { id: "success" });
+           router.push("/notes");
+        }
+      } catch (e) {
+          toast.dismiss("loading");
+      }
     },
   });
 
@@ -97,7 +95,6 @@ export default function Login() {
                 autoComplete="password"
                 placeholder="Enter your password"
                 field={field}
-                aria-label="Password"
                 endContent={
                   <button
                     type="button"
@@ -123,6 +120,9 @@ export default function Login() {
 
             <button
               type="button"
+              onClick={() => {
+                  window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001/api/v1'}/auth/google`;
+              }}
               className="cursor-pointer w-full inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-ghost"
             >
               <svg className="h-6 w-6 mr-3" viewBox="0 0 24 24" fill="none" aria-hidden="true">

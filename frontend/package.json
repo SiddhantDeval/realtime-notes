@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@tanstack/react-form": "^1.27.7",
+    "axios": "^1.13.2",
     "baseline-browser-mapping": "^2.9.11",
     "lucide-react": "^0.562.0",
     "next": "^16.1.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7"
   },
   "devDependencies": {

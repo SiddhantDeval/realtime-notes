@@ -1,3 +1,4 @@
+
 # Realtime Collaborative Notes — Backend
 
 This document explains the **backend architecture, data flow, and realtime editing logic** for the Realtime Collaborative Notes application. It is written in **simple, clear language**, suitable for developers, reviewers, and interview discussions.
@@ -52,33 +53,18 @@ It supports **both REST APIs and WebSockets**, allowing reliable CRUD operations
 
 ---
 
-## 4. High-Level Backend Architecture
-
-```
-Client (Browser)
-   │
-   ├── REST APIs (HTTP)
-   │      └── Auth, Notes CRUD, History, Share
-   │
-   └── WebSocket (Socket.IO)
-          └── Realtime edits, cursors, presence
-
-Backend Server (Node.js)
-   ├── Auth Middleware (JWT)
-   ├── Permission Guard
-   ├── Edit Processor (Ops Engine)
-   ├── Prisma ORM
-   ├── Redis Adapter
-   └── PostgreSQL
-```
-
----
-
 ## 4. Authentication & Sessions
+
+### Google Authentication
+To enable Google Login, you must provide:
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
+The callback URL is `/api/v1/auth/google/callback`.
 
 ### Flow
 
-1. User logs in via `POST /api/auth/login`
+1. User logs in via `POST /api/auth/login` (Email/Password) OR `GET /api/v1/auth/google` (Google)
 2. Backend validates credentials
 3. Issues:
 

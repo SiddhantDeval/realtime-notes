@@ -1,3 +1,4 @@
+
 # Realtime Collaborative Notes — Frontend
 
 This document explains the **frontend architecture, flows, and responsibilities** of the Realtime Collaborative Notes application. It is written to be understandable by **developers, reviewers, and interviewers**.
@@ -62,11 +63,12 @@ App
 
 ## 4. Authentication Flow (Frontend)
 
-1. User logs in via `POST /api/auth/login`
-2. Access token stored in memory
-3. Refresh token stored securely (httpOnly cookie)
-4. `ApiClient` auto-refreshes token on `401`
-5. Socket connection starts only after auth success
+1. User logs in via `POST /api/auth/login` OR clicks "Continue with Google"
+2. Google Login redirects to `/auth/callback?token=...`
+3. Access token stored in memory/session
+4. Refresh token stored securely (httpOnly cookie)
+5. `ApiClient` auto-refreshes token on `401`
+6. Socket connection starts only after auth success
 
 ```ts
 socket = io(API_URL, {
