@@ -2,14 +2,13 @@ import { Request, Response, NextFunction } from 'express'
 import NoteService from '@/services/noteService'
 import { NoteVisibility } from '@prisma/client'
 
-// Middleware adds user to req.user (assuming standard auth middleware)
-// We need to extend Request type or use (req as any).user
-// For now, I'll assume req["user"] exists if auth middleware passed.
+// Middleware adds user to req.user via Express module augmentation
+// See src/types/express/index.d.ts for type definitions
 
 export default class NoteController {
     static createNote = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user?.id
+            const userId = req.user?.id
             if (!userId) {
                 res.status(401).json({ error: 'Unauthorized' })
                 return
@@ -37,7 +36,7 @@ export default class NoteController {
 
     static getNote = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user?.id
+            const userId = req.user?.id
             if (!userId) {
                 res.status(401).json({ error: 'Unauthorized' })
                 return
@@ -59,7 +58,7 @@ export default class NoteController {
 
     static getMyNotes = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user?.id
+            const userId = req.user?.id
             if (!userId) {
                 res.status(401).json({ error: 'Unauthorized' })
                 return
@@ -74,7 +73,7 @@ export default class NoteController {
 
     static updateNote = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user?.id
+            const userId = req.user?.id
             if (!userId) {
                 res.status(401).json({ error: 'Unauthorized' })
                 return
@@ -102,7 +101,7 @@ export default class NoteController {
 
     static deleteNote = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = (req as any).user?.id
+            const userId = req.user?.id
             if (!userId) {
                 res.status(401).json({ error: 'Unauthorized' })
                 return

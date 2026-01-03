@@ -51,8 +51,7 @@ export default class AuthController {
     static me = async (req: Request, res: Response) => {
         try {
             if (!req.user) return ResponseHelper.unauthorized(res, 'User not authenticated')
-            // @ts-ignore
-            const userId = req.user.userId || req.user.id 
+            const userId = req.user.id
             
             const user = await AuthService.me(userId)
             if (!user) return ResponseHelper.notFound(res, 'User not found')
@@ -80,7 +79,7 @@ export default class AuthController {
     static googleCallback = async (req: Request, res: Response) => {
         try {
             // req.user is populated by passport
-            const user = req.user as any;
+            const user = req.user;
             if (!user) return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
 
             const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email });
