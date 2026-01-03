@@ -5,6 +5,7 @@ import { z } from 'zod'
 const environment = process.env.NODE_ENV || 'development'
 // Loads from .env file
 dotenv.config({ path: `.env.${environment}` })
+dotenv.config({ path: '.env' })
 
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']),
