@@ -71,4 +71,54 @@ export default class NoteController {
             next(error)
         }
     }
+
+    static updateNote = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userId = (req as any).user?.id
+            if (!userId) {
+                res.status(401).json({ error: 'Unauthorized' })
+                return
+            }
+
+            const { id } = req.params
+            const { title, visibility, content } = req.body
+
+            const note = await NoteService.updateNote(id, userId, {
+                title,
+                visibility: visibility as NoteVisibility,
+                content
+            })
+
+            if (!note) {
+                res.status(404).json({ error: 'Note not found or access denied' })
+                return
+            }
+
+            res.json(note)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    static deleteNote = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userId = (req as any).user?.id
+            if (!userId) {
+                res.status(401).json({ error: 'Unauthorized' })
+                return
+            }
+
+            const { id } = req.params
+            const success = await NoteService.deleteNote(id, userId)
+
+            if (!success) {
+                res.status(404).json({ error: 'Note not found or access denied' })
+                return
+            }
+
+            res.status(204).send()
+        } catch (error) {
+            next(error)
+        }
+    }
 }

@@ -10,5 +10,7 @@ router.use(authMiddleware)
 router.post('/', NoteController.createNote)
 router.get('/', NoteController.getMyNotes)
 router.get('/:id', NoteController.getNote)
+router.put('/:id', NoteController.updateNote)
+router.delete('/:id', NoteController.deleteNote)
 
 export default router

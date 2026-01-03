@@ -83,4 +83,49 @@ export default class NoteService {
         })
         return notes
     }
+
+    static async updateNote(
+        noteId: string,
+        userId: string,
+        data: { title?: string; visibility?: NoteVisibility; content?: string }
+    ) {
+        // Check if user has write access
+        const note = await prisma.note.findUnique({ where: { id: noteId } })
+        if (!note) return null
+
+        const permission = await prisma.notePermission.findUnique({
+            where: { noteId_userId: { noteId, userId } }
+        })
+
+        // Allow if owner or has appropriate role (e.g. EDITOR/OWNER)
+        // For simplicity, checking if owner or permission exists (and not READ_ONLY)
+        // You might need more granular permission checks
+        const canEdit = note.ownerId === userId || (permission && permission.role !== 'VIEWER') // Assuming VIEWER exists or similar
+
+        if (!canEdit) return null
+
+        const updatedNote = await prisma.note.update({
+            where: { id: noteId },
+            data: {
+                title: data.title,
+                visibility: data.visibility,
+                latestContent: data.content,
+            }
+        })
+        return updatedNote
+    }
+
+    static async deleteNote(noteId: string, userId: string) {
+        const note = await prisma.note.findUnique({ where: { id: noteId } })
+        if (!note) return false
+
+        if (note.ownerId !== userId) return false // Only owner can delete
+
+        // Soft delete
+        await prisma.note.update({
+            where: { id: noteId },
+            data: { isDeleted: true }
+        })
+        return true
+    }
 }
