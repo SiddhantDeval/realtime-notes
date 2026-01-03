@@ -3,8 +3,11 @@ import createApp from '@/app'
 import { serverConfig } from '@/config'
 import prisma from '@/models/client'
 
+import { initSocketServer } from '@/sockets'
+
 const app = createApp()
 const server = http.createServer(app)
+initSocketServer(server)
 
 const PORT = serverConfig?.port ?? Number(process.env.PORT ?? 4000)
 const ENV = serverConfig?.env ?? process.env.NODE_ENV ?? 'development'
