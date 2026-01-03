@@ -2,7 +2,7 @@
     "extends": "@tsconfig/node22/tsconfig.json",
     "compilerOptions": {
         "outDir": "./dist",
-        "rootDir": ".",
+        "rootDir": "./src",
         "resolveJsonModule": true,
         "allowJs": true,
         "esModuleInterop": true,
