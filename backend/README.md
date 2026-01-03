@@ -27,10 +27,32 @@ It supports **both REST APIs and WebSockets**, allowing reliable CRUD operations
 * **Prisma ORM** (Schema & DB access)
 * **Redis** (Pub/Sub for multi-instance scaling)
 * **JWT** (Authentication)
+* **Docker** (Containerization for Dev & Prod)
 
 ---
 
-## 3. High-Level Backend Architecture
+## 3. Docker Setup
+
+### Development
+1. Ensure Docker and Docker Compose are installed.
+2. Run `docker-compose up --build`.
+   - Starts Backend on port 4000.
+   - Starts PostgreSQL on port 5432.
+   - Hot-reloading enabled via volume mount.
+
+### Production
+1. Build the image:
+   ```bash
+   docker build --target production -t realtime-notes-backend .
+   ```
+2. Run the container:
+   ```bash
+   docker run -p 4000:4000 -e DATABASE_URL=... -e JWT_SECRET=... realtime-notes-backend
+   ```
+
+---
+
+## 4. High-Level Backend Architecture
 
 ```
 Client (Browser)
