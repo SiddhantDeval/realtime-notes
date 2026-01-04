@@ -20,11 +20,15 @@ export class ApiClient {
     // --- Auth Endpoints ---
 
     login(payload: { email: string; password: string }) {
-        return this.api.login(payload)
+        return this.api.login<ResponseData<{ user: User; token: string }>>(
+            payload
+        )
     }
 
     register(payload: { email: string; password: string; name: string }) {
-        return this.api.register(payload)
+        return this.api.register<ResponseData<{ user: User; token: string }>>(
+            payload
+        )
     }
 
     logout() {
@@ -36,13 +40,18 @@ export class ApiClient {
     }
 
     refreshToken() {
-        return this.api.refreshToken()
+        return this.api.refreshToken<ResponseData<{ token: string }>>()
     }
 
     // --- Note Endpoints ---
 
-    getNotes() {
-        return this.api.getNotes()
+    getNotes(params?: {
+        search?: string
+        sort?: string
+        cursor?: string
+        limit?: number
+    }) {
+        return this.api.getNotes(params)
     }
 
     getNote(id: string) {

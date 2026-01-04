@@ -69,61 +69,65 @@ export class Api {
 
     // --- Auth Endpoints ---
 
-    public login = async (payload: { email: string; password: string }) => {
-        return this.axiosInstance.post('/auth/login', payload)
+    public login = async <T>(payload: { email: string; password: string }) => {
+        return this.axiosInstance.post<T>('/auth/login', payload)
     }
 
-    public register = async (payload: {
+    public register = async <T>(payload: {
         email: string
         password: string
         name: string
     }) => {
-        return this.axiosInstance.post('/auth/register', payload)
+        return this.axiosInstance.post<T>('/auth/register', payload)
     }
 
-    public logout = async () => {
-        return this.axiosInstance.post('/auth/logout')
+    public logout = async <T>() => {
+        return this.axiosInstance.post<T>('/auth/logout')
     }
 
     public me = async <T>() => {
         return this.axiosInstance.get<T>('/auth/me')
     }
 
-    public refreshToken = async () => {
-        return this.axiosInstance.post('/auth/refresh-token')
+    public refreshToken = async <T>() => {
+        return this.axiosInstance.post<T>('/auth/refresh-token')
     }
 
     // --- Note Endpoints ---
 
-    public getNotes = async () => {
-        // Assuming GET /notes returns { success: true, data: [...] } or just [...]
-        const res = await this.axiosInstance.get('/notes')
+    public getNotes = async <T>(params?: {
+        search?: string
+        sort?: string
+        cursor?: string
+        limit?: number
+    }) => {
+        const res = await this.axiosInstance.get<T>('/notes', { params })
         return res.data
     }
 
-    public getNote = async (id: string) => {
-        const res = await this.axiosInstance.get(`/notes/${id}`)
+    public getNote = async <T>(id: string) => {
+        const res = await this.axiosInstance.get<T>(`/notes/${id}`)
         return res.data
     }
 
-    public createNote = async (payload: {
+    public createNote = async <T>(payload: {
         title: string
         content?: string
     }) => {
-        const res = await this.axiosInstance.post('/notes', payload)
+        const res = await this.axiosInstance.post<T>('/notes', payload)
         return res.data
     }
 
-    public updateNote = async (
+    public updateNote = async <T>(
         id: string,
         payload: { title?: string; content?: string }
     ) => {
-        const res = await this.axiosInstance.put(`/notes/${id}`, payload)
+        const res = await this.axiosInstance.put<T>(`/notes/${id}`, payload)
         return res.data
     }
 
-    public deleteNote = async (id: string) => {
-        const res = await this.axiosInstance.delete(`/notes/${id}`)
+    public deleteNote = async <T>(id: string) => {
+        const res = await this.axiosInstance.delete<T>(`/notes/${id}`)
         return res.data
     }
 }
