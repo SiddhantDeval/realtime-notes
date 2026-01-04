@@ -3,6 +3,7 @@
 import { useAuth } from '@/context/authContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect } from 'react'
+import Loading from '@/components/common/Loading'
 
 interface ProtectedRouteProps {
     children: React.ReactNode
@@ -34,16 +35,7 @@ export default function ProtectedRoute({
 
     // Show loading state while checking authentication
     if (isLoading) {
-        return (
-            <div className="min-h-[calc(100dvh-121px-65px)] md:min-h-[calc(100dvh-65px-65px)] flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                    <p className="text-text-secondary dark:text-gray-400">
-                        Loading...
-                    </p>
-                </div>
-            </div>
-        )
+        return <Loading fullPage />
     }
 
     // If auth is required but user is not authenticated, show nothing (redirect will happen)
