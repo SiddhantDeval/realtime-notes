@@ -1,6 +1,6 @@
 import http from 'http'
 import createApp from '@/app'
-import { serverConfig } from '@/config'
+import { databaseConfig, serverConfig } from '@/config'
 import prisma from '@/models/client'
 
 import { initSocketServer } from '@/sockets'
@@ -24,7 +24,7 @@ async function start() {
     try {
         // Connect Prisma (or any infra that must be ready before accepting requests)
         if (prisma?.$connect) {
-            logger.info('Connecting to database...')
+            logger.info('Connecting to database...', databaseConfig.url)
             await prisma.$connect()
             logger.info('Database connected')
         }

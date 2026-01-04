@@ -12,13 +12,12 @@
 // ------------------ Generator & Datasource ------------------
 
 generator client {
-  provider = "prisma-client-js" // Generates Prisma Client for DB access
-
+  provider = "prisma-client-js" // Generates Prisma Client for DB 
+  output   = "./generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"       // PostgreSQL recommended for locking & concurrency
-
 }
 
 // ------------------ ENUMS ------------------
@@ -51,6 +50,13 @@ model User {
   avatarUrl String?                       // Optional profile image
 
   isActive  Boolean  @default(true)       // Soft disable account
+  isVerified Boolean @default(false)      // Email verification status
+  
+  verificationToken String?             // Email verification token
+  verificationTokenExpiry DateTime?     // Expiry for verification token
+  
+  resetPasswordToken String?            // Password reset token
+  resetPasswordExpiry DateTime?         // Expiry for reset token
 
   createdAt DateTime @default(now())      // Account creation time
   updatedAt DateTime @updatedAt           // Last profile update

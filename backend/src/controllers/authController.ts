@@ -76,6 +76,49 @@ export default class AuthController {
         }
     }
 
+    static verifyEmail = async (req: Request, res: Response) => {
+        try {
+            const { token } = req.body
+            if (!token) {
+                return ResponseHelper.error(res, new Error("Token is required"))
+            }
+
+            await AuthService.verifyEmail(token)
+            ResponseHelper.success(res, { message: 'Email verified successfully' })
+        } catch (error) {
+            ResponseHelper.error(res, error)
+        }
+    }
+
+    static forgotPassword = async (req: Request, res: Response) => {
+        try {
+            const { email } = req.body
+            if (!email) {
+                return ResponseHelper.error(res, new Error("Email is required"))
+            }
+
+            await AuthService.forgotPassword(email)
+            // Always return success to prevent email enumeration
+            ResponseHelper.success(res, { message: 'If an account exists, a password reset email has been sent.' })
+        } catch (error) {
+            ResponseHelper.error(res, error)
+        }
+    }
+
+    static resetPassword = async (req: Request, res: Response) => {
+        try {
+            const { token, newPassword } = req.body
+            if (!token || !newPassword) {
+                return ResponseHelper.error(res, new Error("Token and new password are required"))
+            }
+
+            await AuthService.resetPassword(token, newPassword)
+            ResponseHelper.success(res, { message: 'Password reset successfully' })
+        } catch (error) {
+            ResponseHelper.error(res, error)
+        }
+    }
+
     static googleCallback = async (req: Request, res: Response) => {
         try {
             // req.user is populated by passport

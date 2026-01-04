@@ -1,7 +1,8 @@
-import prisma from '@/models/client'
 import { AuthHelper } from '@/helpers'
-import { User } from '@prisma/client'
 import CustomError from '@/helpers/customError'
+import EmailService from './emailService'
+import nodeCrypto from 'crypto'
+import prisma from '@/models/client'
 
 export default class AuthService {
     static register = async (data: { email: string; passwordPlain: string; full_name: string }) => {
@@ -14,34 +15,32 @@ export default class AuthService {
         }
 
         const hashedPassword = await AuthHelper.hashPassword(data.passwordPlain)
+        
+        // Generate verification token
+        const verificationToken = nodeCrypto.randomBytes(32).toString('hex')
+        const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
         const user = await prisma.user.create({
             data: {
                 email: data.email,
                 name: data.full_name,
                 password: hashedPassword,
+                verificationToken,
+                verificationTokenExpiry,
+                isVerified: false
             },
         })
 
         const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })
         const refreshToken = AuthHelper.generateRefreshToken({ id: user.id, email: user.email })
-        
-        // Remove password from returned user object (though global omit might handle it, we're explicit here if needed for specific return type)
-        // With global omit, 'user' does not have 'password' property unless we selected it.
-        // Create returns the object based on args, usually includes all fields.
-        // Actually, prisma.user.create will return the object.
-        // If global omit is set, it might return without password.
-        // But to be safe in logic:
-        // const { password, ...rest } = user
-        // But 'user' type might not have 'password' if omit is in effect? 
-        // No, create returns User.
+
+        // Send verification email
+        await EmailService.sendVerificationEmail(user.email, user.name || 'User', verificationToken)
         
         return { user, token, refreshToken }
     }
 
     static login = async (email: string, passwordPlain: string) => {
-        // We need password to verify, so we must explicitly select it (implied by global omit)
-        // or select ALL fields including password.
         const userWithPassword = await prisma.user.findUnique({
             where: { email },
             select: {
@@ -51,6 +50,7 @@ export default class AuthService {
                 name: true,
                 avatarUrl: true,
                 isActive: true,
+                isVerified: true,
                 createdAt: true,
                 updatedAt: true
             }
@@ -73,16 +73,79 @@ export default class AuthService {
         return { user: rest, token, refreshToken }
     }
 
-    static logout = async () => {
-        // Invalidate the refresh token by deleting it from the database
-        // await prisma.refreshToken.deleteMany({
-        //     where: {
-        //         userId: userId,
-        //     },
-        // })
+    static verifyEmail = async (token: string) => {
+        const user = await prisma.user.findFirst({
+            where: {
+                verificationToken: token,
+                verificationTokenExpiry: { gt: new Date() }
+            }
+        })
+
+        if (!user) {
+            throw new CustomError('invalid_token', 400, 'Invalid or expired verification token')
+        }
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                isVerified: true,
+                verificationToken: null,
+                verificationTokenExpiry: null
+            }
+        })
+
+        // Send welcome email after verification
+        await EmailService.sendWelcomeEmail(user.email, user.name || 'User')
 
         return true
     }
+
+    static forgotPassword = async (email: string) => {
+        const user = await prisma.user.findUnique({ where: { email } })
+        if (!user) return false // Return silent success
+
+        const resetToken = nodeCrypto.randomBytes(32).toString('hex')
+        const resetTokenExpiry = new Date(Date.now() + 1 * 60 * 60 * 1000) // 1 hour
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                resetPasswordToken: resetToken,
+                resetPasswordExpiry: resetTokenExpiry
+            }
+        })
+
+        await EmailService.sendPasswordResetEmail(user.email, user.name || 'User', resetToken)
+        return true
+    }
+
+    static resetPassword = async (token: string, newPasswordPlain: string) => {
+        const user = await prisma.user.findFirst({
+            where: {
+                resetPasswordToken: token,
+                resetPasswordExpiry: { gt: new Date() }
+            }
+        })
+
+        if (!user) {
+            throw new CustomError('invalid_token', 400, 'Invalid or expired reset token')
+        }
+
+        const hashedPassword = await AuthHelper.hashPassword(newPasswordPlain)
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                password: hashedPassword,
+                resetPasswordToken: null,
+                resetPasswordExpiry: null
+            }
+        })
+
+        return true
+    }
+
+    static logout = async () => true
 
     static refreshToken = async (refreshToken: string) => {
         const decoded = AuthHelper.verifyJwtToken(refreshToken)
@@ -92,7 +155,7 @@ export default class AuthService {
 
         const user = await prisma.user.findUnique({
             where: { id: decoded.id },
-            select: { id: true, email: true }, // Select minimal fields
+            select: { id: true, email: true }, 
         })
 
         if (!user) {
@@ -114,7 +177,8 @@ export default class AuthService {
                 createdAt: true,
                 updatedAt: true,
                 avatarUrl: true,
-                isActive: true
+                isActive: true,
+                isVerified: true
             },
         })
         return user

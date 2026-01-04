@@ -1,9 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `users` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "NoteRole" AS ENUM ('OWNER', 'EDITOR', 'VIEWER');
 
@@ -13,9 +7,6 @@ CREATE TYPE "NoteVisibility" AS ENUM ('PRIVATE', 'LINK', 'PUBLIC');
 -- CreateEnum
 CREATE TYPE "OperationStatus" AS ENUM ('PENDING', 'APPLIED', 'REJECTED');
 
--- DropTable
-DROP TABLE "users";
-
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -24,6 +15,11 @@ CREATE TABLE "User" (
     "password" TEXT NOT NULL,
     "avatarUrl" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "isVerified" BOOLEAN NOT NULL DEFAULT false,
+    "verificationToken" TEXT,
+    "verificationTokenExpiry" TIMESTAMP(3),
+    "resetPasswordToken" TEXT,
+    "resetPasswordExpiry" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

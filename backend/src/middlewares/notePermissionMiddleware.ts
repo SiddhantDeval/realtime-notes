@@ -1,9 +1,9 @@
+import { $Enums } from 'prisma/client'
 import { Request, Response, NextFunction } from 'express'
 import { ResponseHelper } from '@/helpers'
-import prisma from '@/models/client'
 import PermissionService from '@/services/permissionService'
-import type { NoteRole, NoteVisibility } from '@prisma/client'
-import { $Enums } from '@prisma/client'
+import prisma from '@/models/client'
+import type { NoteRole } from 'prisma/client'
 
 /**
  * Middleware to check if user has permission to access a note

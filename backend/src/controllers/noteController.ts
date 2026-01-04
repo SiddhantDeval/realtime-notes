@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import NoteService from '@/services/noteService'
-import { NoteVisibility } from '@prisma/client'
+import { NoteVisibility } from 'prisma/client'
 
 // Middleware adds user to req.user via Express module augmentation
 // See src/types/express/index.d.ts for type definitions

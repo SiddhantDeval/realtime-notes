@@ -1,10 +1,7 @@
-import { Server, Socket } from 'socket.io'
-import { Server as HttpServer } from 'http' // Updated import to avoid conflict with generic Server type if needed, though 'http' import is fine.
+import { $Enums } from 'prisma/client'
+import { Server } from 'socket.io'
 import jwt from 'jsonwebtoken'
-import { serverConfig } from '@/config'
 import NoteService from '@/services/noteService'
-import type { NoteRole } from '@prisma/client'
-import { $Enums } from '@prisma/client'
 import PermissionService from '@/services/permissionService'
 
 // Define socket data types

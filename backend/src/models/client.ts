@@ -1,18 +1,19 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from 'prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
+import { databaseConfig } from '@/config'
 
 const omitConfig = {
     user: { password: true },
 } as const
 
-const connectionString = `${process.env.DATABASE_URL}`
-const pool = new Pool({ connectionString })
-const adapter = new PrismaPg(pool)
+const DATABASE_URL = databaseConfig.url
 
-const prisma = new PrismaClient({ 
+const adapter = new PrismaPg({
+    connectionString: DATABASE_URL,
+})
+const prisma = new PrismaClient({
     omit: omitConfig,
-    adapter
+    adapter,
 })
 
 export default prisma

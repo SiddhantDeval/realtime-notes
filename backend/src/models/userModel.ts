@@ -1,5 +1,5 @@
 import prisma from './client'
-import { type User } from '@prisma/client'
+import { type User } from 'prisma/client'
 
 class UserModel {
     static async findByEmail(email: string) {

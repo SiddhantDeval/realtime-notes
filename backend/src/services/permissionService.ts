@@ -1,5 +1,5 @@
-import type { NoteRole } from '@prisma/client'
-import { $Enums } from '@prisma/client'
+import type { NoteRole } from 'prisma/client'
+import { $Enums } from 'prisma/client'
 
 /**
  * Checks if a user has the required role for a note.

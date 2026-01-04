@@ -1,5 +1,5 @@
 import { Response } from 'express'
-import { Prisma } from '@prisma/client'
+import { Prisma } from 'prisma/client'
 import CustomError from './customError'
 
 type PrismaErrors =

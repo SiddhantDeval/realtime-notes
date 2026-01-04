@@ -1,7 +1,7 @@
-import prisma from '@/models/client'
-import type { NoteRole, NoteVisibility } from '@prisma/client'
-import { $Enums } from '@prisma/client'
+import { $Enums } from 'prisma/client'
 import PermissionService from '@/services/permissionService'
+import prisma from '@/models/client'
+import type { NoteVisibility } from 'prisma/client'
 
 export default class NoteService {
     static async createNote(
