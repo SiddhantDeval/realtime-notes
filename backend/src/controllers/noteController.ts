@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import NoteService from '@/services/noteService'
 import { NoteVisibility } from 'prisma/client'
+import { ResponseHelper } from '@/helpers'
 
 // Middleware adds user to req.user via Express module augmentation
 // See src/types/express/index.d.ts for type definitions
@@ -86,7 +87,7 @@ export default class NoteController {
                 cursor: cursor as string,
                 limit: limit ? parseInt(limit as string) : undefined,
             })
-            res.json(notesData)
+            ResponseHelper.success(res, notesData)
         } catch (error) {
             next(error)
         }
