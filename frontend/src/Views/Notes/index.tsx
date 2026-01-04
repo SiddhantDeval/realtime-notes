@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Api } from '@/api'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/authContext'
+import { client } from '@/api/client'
 
 interface NoteItem {
     id: string
@@ -27,7 +27,7 @@ export default function Notes() {
 
     const loadNotes = async () => {
         try {
-            const res = await Api.client.getNotes()
+            const res = await client.getNotes()
             // Handle different potential response shapes
             const data = res.data || res // Axios usually returns response object but our wrapper returns res.data
 

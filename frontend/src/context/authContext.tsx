@@ -5,69 +5,27 @@ import React, {
     useContext,
     useEffect,
     useMemo,
-    useCallback,
     useState,
     useRef,
 } from 'react'
 import { toast } from 'sonner'
-import { Api } from '@/api'
 import { useRouter, usePathname } from 'next/navigation'
-
-// --- Types ---
-
-export interface User {
-    id: string
-    email: string
-    full_name: string
-    [key: string]: any
-}
-
-export interface AuthSession {
-    token: string
-    user: User
-}
+import { Auth } from '@/api/auth'
+import { AuthSession, User } from '@/types'
 
 export interface AuthContextType {
-    user: User | null
-    token: string | null
+    user?: User | null
+    token?: string | null
     isAuthenticated: boolean
     isLoading: boolean
     login: (email: string, password: string) => Promise<boolean>
+    loginWithGoogle: (token: string) => Promise<boolean>
     logout: () => Promise<void>
     register: (data: any) => Promise<boolean>
+    updateCurrentUser: () => Promise<void>
 }
-
-// --- Constants ---
-const LOCAL_STORAGE_KEY = 'auth_session'
-const REFRESH_THRESHOLD_MS = 60 * 1000 // 1 minute before expiry
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-// --- Helpers ---
-
-// Safe JSON parse
-const safeParse = <T,>(json: string | null): T | null => {
-    if (!json) return null
-    try {
-        return JSON.parse(json)
-    } catch {
-        return null
-    }
-}
-
-// decode JWT exp
-const getJwtExp = (token: string): number | null => {
-    try {
-        const [, payload] = token.split('.')
-        if (!payload) return null
-        const decoded = JSON.parse(
-            atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
-        )
-        return typeof decoded.exp === 'number' ? decoded.exp * 1000 : null
-    } catch {
-        return null
-    }
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<AuthSession | null>(null)
@@ -78,30 +36,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Refresh timer ref
     const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    // 1. Initialize from LocalStorage
+    // 1. Initialize from LocalStorage using Auth class
     useEffect(() => {
         const initAuth = async () => {
-            const stored = safeParse<AuthSession>(
-                localStorage.getItem(LOCAL_STORAGE_KEY)
-            )
+            const stored = Auth.getSession()
             if (stored && stored.token) {
-                // Check rough validity immediately
-                const exp = getJwtExp(stored.token)
-                if (exp && exp > Date.now()) {
+                // Check validity
+                if (!Auth.isTokenExpired(stored.token)) {
                     setSession(stored)
-                    // Optionally validate with /me
-                    try {
-                        // We rely on the stored token being attached by the Api interceptor
-                        // But we must make sure the interceptor pulls from localStorage or we explicitly set it?
-                        // The current Api interceptor pulls from localStorage(localStorageAuthKey).
-                        // Our key is LOCAL_STORAGE_KEY. We must match the key used in Api interceptor or update Api interceptor.
-                        // Re-reading Api implementation: it uses `localStorageAuthKey` from "@/context/authContext".
-                        // So as long as we export `localStorageAuthKey` matching "auth", we are good.
-                        // Wait, I am changing the file exporting it.
-                        // Let's ensure consistency.
-                    } catch (e) {}
                 } else {
-                    localStorage.removeItem(LOCAL_STORAGE_KEY)
+                    Auth.clearSession()
                 }
             }
             setIsLoading(false)
@@ -112,28 +56,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 2. Persist Session & Schedule Refresh
     useEffect(() => {
         if (!session) {
-            localStorage.removeItem(LOCAL_STORAGE_KEY)
+            Auth.clearSession()
             if (refreshTimeoutRef.current)
                 clearTimeout(refreshTimeoutRef.current)
             return
         }
 
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(session))
+        Auth.setSession(session)
+
+        if (!session.token) return
 
         // Schedule Refresh
-        const exp = getJwtExp(session.token)
-        if (!exp) return
+        const msUntilRefresh = Auth.getTimeUntilRefresh(session.token)
+        const exp = Auth.getJwtExp(session.token)
 
-        const msUntilRefresh = exp - Date.now() - REFRESH_THRESHOLD_MS
+        if (!exp) return
 
         if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current)
 
         if (msUntilRefresh <= 0) {
-            // Token is close to expiring or expired, refresh now
-            refreshToken()
+            // Refresh now
+            handleRefreshToken()
         } else {
             refreshTimeoutRef.current = setTimeout(() => {
-                refreshToken()
+                handleRefreshToken()
             }, msUntilRefresh)
         }
 
@@ -143,9 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [session])
 
-    const refreshToken = async () => {
+    const handleRefreshToken = async () => {
         try {
-            const res = await Api.client.refreshToken()
+            const res = await Auth.refreshToken()
             const data = res.data || res
             if (data && data.token) {
                 setSession((prev) =>
@@ -160,17 +106,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = async (email: string, password: string): Promise<boolean> => {
         try {
-            const res = await Api.client.login({ email, password })
+            const res = await Auth.login({ email, password })
             const data = res.data || res
 
-            // Data expected: { token: string, user: User }
             if (data && data.token) {
                 setSession({
                     token: data.token,
-                    user: data.user || { id: '', email, full_name: 'User' }, // Fallback
+                    user: data.user || { id: '', email, name: 'User' },
                 })
 
-                // Check for redirect URL stored before login
                 const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
                 if (redirectUrl) {
                     sessionStorage.removeItem('redirectAfterLogin')
@@ -183,13 +127,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error: any) {
             const msg = error.message || error.error || 'Login failed'
             toast.error(msg)
-            throw error // Propagate to form
+            throw error
+        }
+    }
+
+    const loginWithGoogle = async (token: string): Promise<boolean> => {
+        try {
+            Auth.setSession({
+                token,
+                user: null,
+            })
+            const res = await Auth.getCurrentUser()
+
+            if (res && res.data) {
+                setSession({
+                    token,
+                    user: res.data.data,
+                })
+
+                const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
+                if (redirectUrl) {
+                    sessionStorage.removeItem('redirectAfterLogin')
+                    router.push(redirectUrl)
+                }
+
+                return true
+            }
+            return false
+        } catch (error: any) {
+            const msg = error.message || error.error || 'Login failed'
+            toast.error(msg)
+            throw error
         }
     }
 
     const register = async (payload: any): Promise<boolean> => {
         try {
-            await Api.client.register(payload)
+            await Auth.register(payload)
             return true
         } catch (error: any) {
             toast.error(error.message || 'Registration failed')
@@ -199,18 +173,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = async () => {
         try {
-            await Api.client.logout()
+            await Auth.logout()
         } catch (e) {
-            /* ignore */
+            // ignore
         }
         setSession(null)
+        Auth.clearSession()
         router.push('/login')
         toast.info('Logged out')
     }
 
-    // Export constant for API client usage
-    // The Api client imports `localStorageAuthKey` from here.
-    // We must ensure we export it with the same name.
+    const updateCurrentUser = async () => {
+        try {
+            const res = await Auth.getCurrentUser()
+            const data = res.data || res
+            if (data && data?.data) {
+                setSession((prev) => ({
+                    ...prev,
+                    user: data.data,
+                }))
+            }
+        } catch (error) {
+            console.error('Failed to fetch current user', error)
+        }
+    }
 
     const value = useMemo(
         () => ({
@@ -219,8 +205,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isAuthenticated: !!session,
             isLoading,
             login,
+            loginWithGoogle,
             logout,
             register,
+            updateCurrentUser,
         }),
         [session, isLoading]
     )
@@ -235,6 +223,3 @@ export const useAuth = () => {
     }
     return context
 }
-
-// Export for Api Client
-export const localStorageAuthKey = LOCAL_STORAGE_KEY
