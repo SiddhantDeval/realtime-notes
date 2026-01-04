@@ -9,8 +9,8 @@ import { ControlledInput } from '@/components/Input'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Api } from '@/api'
 import { useRouter } from 'next/navigation'
+import { client } from '@/api/client'
 
 const signupSchema = z
     .object({
@@ -50,7 +50,7 @@ export default function Register() {
         },
         onSubmit: async ({ value }) => {
             try {
-                const res = await Api.client.register({
+                const res = await client.register({
                     name: value.fullName,
                     email: value.email,
                     password: value.password,

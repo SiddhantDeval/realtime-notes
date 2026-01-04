@@ -49,7 +49,7 @@ export default function Notes() {
 
     const handleCreateNote = async () => {
         try {
-            const newNote = await Api.client.createNote({
+            const newNote = await client.createNote({
                 title: 'Untitled Note',
                 content: '',
             })

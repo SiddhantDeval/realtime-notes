@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSocket } from '@/hooks/useSocket'
 import { Api } from '@/api'
+import { client } from '@/api/client'
 
 // --- Helpers ---
 function uuid() {
@@ -85,7 +86,7 @@ export default function Note({ noteId }: { noteId: string }) {
     useEffect(() => {
         async function load() {
             try {
-                const res = await Api.client.getNote(noteId)
+                const res = await client.getNote(noteId)
                 // Handling robust response: { data: note } or just note
                 const note = res.data || res
                 if (note) {
@@ -206,7 +207,7 @@ export default function Note({ noteId }: { noteId: string }) {
     }
 
     function saveTitle() {
-        Api.client.updateNote(noteId, { title }).catch(console.error)
+        client.updateNote(noteId, { title }).catch(console.error)
     }
 
     if (loading) return <div>Loading...</div>
