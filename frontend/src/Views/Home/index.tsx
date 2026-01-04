@@ -6,26 +6,26 @@ export default function Home() {
             <div className="w-full grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
                 <div className="flex flex-col items-center gap-6 text-center lg:items-start lg:gap-8 lg:text-left">
                     <div className="flex flex-col gap-4">
-                        <h1 className="text-4xl font-black leading-tight tracking-tight text-text-primary dark:text-text-inverse sm:text-5xl md:text-6xl">
+                        <h1 className="text-4xl font-black leading-tight tracking-tight text-text-primary sm:text-5xl md:text-6xl">
                             Your ideas, synced everywhere.
                         </h1>
-                        <p className="text-base text-text-secondary dark:text-gray-300 sm:text-lg text-center lg:text-left">
+                        <p className="text-base text-text-secondary sm:text-lg text-center lg:text-left">
                             Collaborate in real-time with secure sessions and
                             versioned notes.
                         </p>
                     </div>
 
-                    <div className="flex  flex-wrap justify-center gap-4 lg:justify-start">
+                    <div className="flex flex-wrap justify-center gap-4 lg:justify-start">
                         <Link
                             href="/register"
-                            className="inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-primary focus-visible:outline-surface-primary"
+                            className="inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-primary"
                         >
                             <span className="truncate">Get Started</span>
                         </Link>
 
                         <Link
                             href="/login"
-                            className="inline-flex items-center justify-center font-bold px-6 py-3 rounded-2xl btn-ghost focus-visible:outline-[--color-surface-primary]"
+                            className="inline-flex items-center justify-center font-bold px-6 py-3 rounded-2xl btn-ghost"
                         >
                             <span className="truncate">Login</span>
                         </Link>

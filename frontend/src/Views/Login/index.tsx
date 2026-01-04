@@ -47,24 +47,25 @@ export default function Login() {
     })
 
     return (
-        <div className="min-h-[calc(100dvh-121px-65px)] md:min-h-[calc(100dvh-65px-65px)] w-full flex items-center justify-center p-4">
-            <div className="w-full max-w-md p-8 md:p-12 dark:bg-surface-dark/50 rounded-3xl dark:shadow-[#1F2937]">
+        <div className="min-h-[calc(100dvh-121px-65px)] md:min-h-[calc(100dvh-65px-65px)] w-full flex items-center justify-center p-4 bg-surface-subtle">
+            <div className="w-full max-w-md p-8 md:p-12 bg-surface rounded-3xl shadow-xl border border-border">
                 {/* Logo / Icon */}
                 <div className="flex flex-col items-center text-center gap-6">
                     <div className="flex items-center justify-center rounded-full">
                         <Link
                             href="/"
-                            className="fill-current text-xl font-semibold flex items-center gap-3 text-text-primary-light dark:text-text-primary-dark"
+                            className="fill-current text-xl font-semibold flex items-center gap-3 text-text-primary"
                         >
                             <img
                                 src="/assets/logo.svg"
                                 alt="SyncNotes"
                                 className="h-10 w-10 fill-current"
                             />
-                            <span className="text-xl font-bold">SyncNotes</span>
+                            <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-brand-600 to-brand-400">SyncNotes</span>
+
                         </Link>
                     </div>
-                    <h1 className="text-[32px] font-bold leading-tight tracking-tight text-[--color-text-strong] dark:text-[--color-text-strong]">
+                    <h1 className="text-[32px] font-bold leading-tight tracking-tight text-text-primary">
                         Welcome Back
                     </h1>
                 </div>
@@ -103,7 +104,7 @@ export default function Login() {
                                     <button
                                         type="button"
                                         onClick={() => setShowPwd((v) => !v)}
-                                        className="p-2 cursor-pointer flex items-center text-text-default dark:text-gray-400"
+                                        className="p-2 cursor-pointer flex items-center text-text-secondary hover:text-text-primary transition-colors"
                                         aria-label={
                                             showPwd
                                                 ? 'Hide password'
@@ -135,7 +136,7 @@ export default function Login() {
                             onClick={() => {
                                 window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001/api/v1'}/auth/google`
                             }}
-                            className="cursor-pointer w-full inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-ghost"
+                            className="cursor-pointer w-full inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-ghost border border-border hover:bg-surface-subtle transition-colors"
                         >
                             <svg
                                 className="h-6 w-6 mr-3"
@@ -160,7 +161,7 @@ export default function Login() {
                                     fill="#EA4335"
                                 />
                             </svg>
-                            <span className="truncate">
+                            <span className="truncate text-text-primary">
                                 Continue with Google
                             </span>
                         </button>
@@ -169,11 +170,11 @@ export default function Login() {
 
                 {/* Footer */}
                 <div className="mt-8 text-center">
-                    <p className="text-base text-text-secondary dark:text-gray-300">
+                    <p className="text-base text-text-secondary">
                         Don’t have an account?{'  '}
                         <Link
                             href="/register"
-                            className="font-bold hover:underline text-surface-primary/90 dark:text-surface-primary"
+                            className="font-bold hover:underline text-brand-600 dark:text-brand-400"
                         >
                             Sign up
                         </Link>

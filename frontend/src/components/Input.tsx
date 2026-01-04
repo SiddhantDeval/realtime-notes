@@ -18,7 +18,7 @@ export default function Input(
                 <label
                     htmlFor={props.id}
                     className={
-                        'block pb-2 text-base font-medium text-text-default dark:text-gray-400' +
+                        'block pb-2 text-base font-medium text-text-secondary ' +
                         (props.labelClass || '')
                     }
                 >
@@ -27,7 +27,7 @@ export default function Input(
             )}
             <div className="relative flex items-center w-full h-full">
                 {props.startContent && (
-                    <div className="absolute left-0 p-2 text-text-default">
+                    <div className="absolute left-0 p-2 text-text-secondary">
                         {props.startContent}
                     </div>
                 )}
@@ -40,7 +40,7 @@ export default function Input(
                             : '')
                     }
                     className={
-                        'w-full min-w-0 text-base leading-normal outline-none p-[15px] rounded-2xl border border-border-default text-text-primary dark:bg-gray-800 dark:text-text-inverse dark:placeholder-gray-400 ' +
+                        'w-full min-w-0 text-base leading-normal outline-none p-[15px] rounded-2xl border border-border text-text-primary bg-surface placeholder:text-text-tertiary focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all ' +
                         (props.startContent ? 'pl-12 ' : '') +
                         (props.endContent ? 'pr-12 ' : '') +
                         (props.className || '')
@@ -48,7 +48,7 @@ export default function Input(
                     {...rest}
                 />
                 {props.endContent && (
-                    <div className="absolute right-0 p-2 text-text-default">
+                    <div className="absolute right-0 p-2 text-text-secondary">
                         {props.endContent}
                     </div>
                 )}

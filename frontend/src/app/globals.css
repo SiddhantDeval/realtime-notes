@@ -105,4 +105,17 @@
     margin-inline: auto;
     padding-inline: 1.5rem;
   }
+
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700 active:scale-95 transition-all shadow-md hover:shadow-lg dark:bg-brand-500 dark:hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-text-primary hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900;
+  }
+
+  .bg-card {
+    background-color: var(--bg-card);
+  }
 }
+
