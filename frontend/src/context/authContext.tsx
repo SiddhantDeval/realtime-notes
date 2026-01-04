@@ -93,9 +93,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             const res = await Auth.refreshToken()
             const data = res.data || res
-            if (data && data.token) {
+            if (data && data.data.token) {
                 setSession((prev) =>
-                    prev ? { ...prev, token: data.token } : null
+                    prev ? { ...prev, token: data.data.token } : null
                 )
             }
         } catch (error) {
@@ -109,16 +109,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const res = await Auth.login({ email, password })
             const data = res.data || res
 
-            if (data && data.token) {
+            if (data && data.data.token) {
                 setSession({
-                    token: data.token,
-                    user: data.user || {
-                        id: '',
-                        email,
-                        name: email.split('@')[0],
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                    },
+                    token: data.data.token,
+                    user: data.data.user,
                 })
 
                 const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
