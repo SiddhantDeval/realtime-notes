@@ -1,7 +1,7 @@
-import { Home } from "@/Views";
+import { Home } from '@/Views'
 
 function App() {
-  return <Home />;
+    return <Home />
 }
 
-export default App;
+export default App

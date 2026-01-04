@@ -1,18 +1,18 @@
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { Note } from "@/Views";
+import ProtectedRoute from '@/components/ProtectedRoute'
+import { Note } from '@/Views'
 
 async function RouteComponent({
-  params,
+    params,
 }: {
-  params: Promise<{ slug: string }>;
+    params: Promise<{ slug: string }>
 }) {
-  const { slug } = await params;
- 
-  return (
-    <ProtectedRoute>
-      <Note noteId={slug} />
-    </ProtectedRoute>
-  );
+    const { slug } = await params
+
+    return (
+        <ProtectedRoute>
+            <Note noteId={slug} />
+        </ProtectedRoute>
+    )
 }
 
-export default RouteComponent;
+export default RouteComponent
