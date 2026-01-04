@@ -1,7 +1,9 @@
 import { CorsOptions } from 'cors'
 import { env } from './env'
 
-const ALLOWED_ORIGINS: string[] = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',') : []
+const ALLOWED_ORIGINS: string[] = env.ALLOWED_ORIGINS
+    ? env.ALLOWED_ORIGINS.split(',')
+    : []
 interface ServerConfig {
     port: number
     env: string
@@ -15,11 +17,13 @@ export const serverConfig: ServerConfig = {
         origin(origin, cb) {
             if (env.NODE_ENV === 'production') {
                 if (!origin || ALLOWED_ORIGINS.indexOf(origin) === -1) {
-                    const msg = 'The CORS policy for this site does not allow access from the specified Origin.'
+                    const msg =
+                        'The CORS policy for this site does not allow access from the specified Origin.'
                     return cb(new Error(msg), false)
                 }
                 return cb(null, true)
             }
+            console.log('origin', origin)
             return cb(null, true)
         },
         credentials: true, // required if you use cookies/auth

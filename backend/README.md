@@ -8,11 +8,11 @@ This document explains the **backend architecture, data flow, and realtime editi
 
 The backend is the **single source of truth** for:
 
-* Notes data and versions
-* Realtime synchronization
-* Conflict resolution
-* Permissions and access control
-* Authentication and session management
+- Notes data and versions
+- Realtime synchronization
+- Conflict resolution
+- Permissions and access control
+- Authentication and session management
 
 It supports **both REST APIs and WebSockets**, allowing reliable CRUD operations and low-latency realtime collaboration.
 
@@ -20,55 +20,72 @@ It supports **both REST APIs and WebSockets**, allowing reliable CRUD operations
 
 ## 2. Tech Stack
 
-* **Node.js + TypeScript**
-* **Express.js** (REST APIs)
-* **Socket.IO** (Realtime communication)
-* **PostgreSQL** (Persistent storage)
-* **Prisma ORM** (Schema & DB access)
-* **Redis** (Pub/Sub for multi-instance scaling)
-* **JWT** (Authentication)
+- **Node.js + TypeScript**
+- **Express.js** (REST APIs)
+- **Socket.IO** (Realtime communication)
+- **PostgreSQL** (Persistent storage)
+- **Prisma ORM** (Schema & DB access)
+- **Redis** (Pub/Sub for multi-instance scaling)
+- **JWT** (Authentication)
+- **Docker** (Containerization for Dev & Prod)
 
 ---
 
-## 3. High-Level Backend Architecture
+## 3. Docker Setup
 
-```
-Client (Browser)
-   │
-   ├── REST APIs (HTTP)
-   │      └── Auth, Notes CRUD, History, Share
-   │
-   └── WebSocket (Socket.IO)
-          └── Realtime edits, cursors, presence
+### Development
 
-Backend Server (Node.js)
-   ├── Auth Middleware (JWT)
-   ├── Permission Guard
-   ├── Edit Processor (Ops Engine)
-   ├── Prisma ORM
-   ├── Redis Adapter
-   └── PostgreSQL
-```
+1. Ensure Docker and Docker Compose are installed.
+2. Run `docker-compose up --build`.
+    - Starts Backend on port 4000.
+    - Starts PostgreSQL on port 5432.
+    - Hot-reloading enabled via volume mount.
+
+### Production
+
+1. Build the image:
+    ```bash
+    docker build --target production -t realtime-notes-backend .
+    ```
+2. Run the container:
+    ```bash
+    docker run -p 4000:4000 -e DATABASE_URL=... -e JWT_SECRET=... realtime-notes-backend
+    ```
 
 ---
 
 ## 4. Authentication & Sessions
 
+### Google Authentication Setup
+
+To enable Google Login:
+
+1. Create a project in **Google Cloud Console**.
+2. Setup **OAuth 2.0 Client ID**.
+3. Configure **Authorized JavaScript Origins**:
+    - `http://localhost:3000` (Frontend URL)
+4. Configure **Authorized Redirect URIs**:
+    - `http://localhost:4001/api/v1/auth/google/callback` (Backend URL + /api/v1/auth/google/callback)
+    - _Note: If API_VERSION is changed from 'v1', update the URI accordingly._
+5. Set environment variables in `.env`:
+    - `GOOGLE_CLIENT_ID`
+    - `GOOGLE_CLIENT_SECRET`
+
 ### Flow
 
-1. User logs in via `POST /api/auth/login`
+1. User logs in via `POST /api/auth/login` (Email/Password) OR `GET /api/v1/auth/google` (Google)
 2. Backend validates credentials
 3. Issues:
+    - **Access Token** (short-lived)
+    - **Refresh Token** (stored hashed in DB)
 
-   * **Access Token** (short-lived)
-   * **Refresh Token** (stored hashed in DB)
 4. Refresh token stored securely (httpOnly cookie)
 5. Access token required for all APIs and socket connections
 
 ### Tables Used
 
-* `User`
-* `Session`
+- `User`
+- `Session`
 
 ---
 
@@ -78,15 +95,15 @@ Every note action is validated using **NotePermission**.
 
 ### Permission Roles
 
-* **OWNER** → Full access
-* **EDITOR** → Edit + view
-* **COMMENTER** → Comment only (optional)
-* **VIEWER** → Read-only
+- **OWNER** → Full access
+- **EDITOR** → Edit + view
+- **COMMENTER** → Comment only (optional)
+- **VIEWER** → Read-only
 
 ### Enforcement
 
-* REST APIs: Express middleware
-* WebSockets: Socket.IO middleware
+- REST APIs: Express middleware
+- WebSockets: Socket.IO middleware
 
 If permission check fails → request rejected immediately.
 
@@ -100,13 +117,13 @@ If permission check fails → request rejected immediately.
 
 Backend actions:
 
-* Insert row into `Note`
-* Insert OWNER row into `NotePermission`
+- Insert row into `Note`
+- Insert OWNER row into `NotePermission`
 
 Tables affected:
 
-* `Note`
-* `NotePermission`
+- `Note`
+- `NotePermission`
 
 ---
 
@@ -116,13 +133,13 @@ Tables affected:
 
 Backend actions:
 
-* Validate permission
-* Return `latestContent` and `version`
+- Validate permission
+- Return `latestContent` and `version`
 
 Tables read:
 
-* `Note`
-* `NotePermission`
+- `Note`
+- `NotePermission`
 
 ---
 
@@ -167,38 +184,36 @@ This handles **every realtime edit**.
 4. Lock note row (`SELECT ... FOR UPDATE`)
 5. Compare `clientVersion` with `Note.version`
 
-* If versions match:
+- If versions match:
+    - Apply ops to content
+    - Increment version
+    - Save to DB
+    - Insert `NoteOperation` with `APPLIED`
+    - Broadcast `remote_edit`
 
-  * Apply ops to content
-  * Increment version
-  * Save to DB
-  * Insert `NoteOperation` with `APPLIED`
-  * Broadcast `remote_edit`
-
-* If versions mismatch:
-
-  * Insert `NoteOperation` with `REJECTED`
-  * Respond with `op_rejected`
+- If versions mismatch:
+    - Insert `NoteOperation` with `REJECTED`
+    - Respond with `op_rejected`
 
 ---
 
 ### 7.3 Apply Operation
 
-* Operations are **small diffs**, not full content
-* Backend applies ops deterministically
-* Backend always produces the **canonical state**
+- Operations are **small diffs**, not full content
+- Backend applies ops deterministically
+- Backend always produces the **canonical state**
 
 Tables written:
 
-* `Note`
-* `NoteOperation`
+- `Note`
+- `NoteOperation`
 
 ---
 
 ### 7.4 Broadcast Update
 
-* Broadcast to Socket.IO room
-* Redis adapter ensures delivery across instances
+- Broadcast to Socket.IO room
+- Redis adapter ensures delivery across instances
 
 ```json
 {
@@ -215,16 +230,16 @@ Tables written:
 
 ### Purpose
 
-* Idempotency (safe retries)
-* Conflict detection
-* Audit trail
-* Debugging and analytics
+- Idempotency (safe retries)
+- Conflict detection
+- Audit trail
+- Debugging and analytics
 
 ### Characteristics
 
-* Append-only
-* Unique `(noteId, opId)`
-* Can be compacted later
+- Append-only
+- Unique `(noteId, opId)`
+- Can be compacted later
 
 ---
 
@@ -232,13 +247,13 @@ Tables written:
 
 ### Purpose
 
-* Fast access to historical states
-* Restore previous versions without replaying ops
+- Fast access to historical states
+- Restore previous versions without replaying ops
 
 ### Creation
 
-* Created periodically (every N ops or minutes)
-* Created manually on restore
+- Created periodically (every N ops or minutes)
+- Created manually on restore
 
 ### Restore Flow
 
@@ -249,23 +264,23 @@ Tables written:
 
 Tables affected:
 
-* `NoteVersion`
-* `Note`
-* `NoteOperation`
+- `NoteVersion`
+- `Note`
+- `NoteOperation`
 
 ---
 
 ## 10. Conflict Handling Strategy
 
-* Backend enforces strict version ordering
-* Only one operation applies per version
-* Conflicts are rejected, not merged
+- Backend enforces strict version ordering
+- Only one operation applies per version
+- Conflicts are rejected, not merged
 
 ### Why
 
-* Simple
-* Deterministic
-* Easy to debug
+- Simple
+- Deterministic
+- Easy to debug
 
 (OT / CRDT can be added later)
 
@@ -275,9 +290,9 @@ Tables affected:
 
 Backend supports reconnect by:
 
-* Always serving canonical content on join
-* Allowing idempotent op retries
-* Rejecting outdated ops with re-sync instructions
+- Always serving canonical content on join
+- Allowing idempotent op retries
+- Rejecting outdated ops with re-sync instructions
 
 Client decides how to rebase or resend.
 
@@ -287,13 +302,13 @@ Client decides how to rebase or resend.
 
 ### APIs
 
-* `POST /api/notes/:id/share`
-* `POST /api/notes/:id/share/link`
+- `POST /api/notes/:id/share`
+- `POST /api/notes/:id/share/link`
 
 ### Tables
 
-* `NotePermission`
-* `ShareLink`
+- `NotePermission`
+- `ShareLink`
 
 Sharing rules enforced identically for REST and sockets.
 
@@ -303,28 +318,28 @@ Sharing rules enforced identically for REST and sockets.
 
 ### Horizontal scaling
 
-* Multiple Node.js instances
-* Redis Pub/Sub for Socket.IO
+- Multiple Node.js instances
+- Redis Pub/Sub for Socket.IO
 
 ### Database
 
-* Row-level locking per note
-* Safe for moderate concurrency
+- Row-level locking per note
+- Safe for moderate concurrency
 
 ### Optimization
 
-* Batch ops
-* Periodic compaction
-* Snapshot pruning
+- Batch ops
+- Periodic compaction
+- Snapshot pruning
 
 ---
 
 ## 14. Error Handling
 
-* Auth errors → 401 / socket disconnect
-* Permission errors → 403
-* Version conflicts → `op_rejected`
-* DB failures → retry or fail fast
+- Auth errors → 401 / socket disconnect
+- Permission errors → 403
+- Version conflicts → `op_rejected`
+- DB failures → retry or fail fast
 
 Errors are logged with context for debugging.
 
@@ -332,11 +347,11 @@ Errors are logged with context for debugging.
 
 ## 15. Security Considerations
 
-* JWT verification for all requests
-* Permission checks everywhere
-* Input validation for ops
-* Rate limiting on edit events
-* Sanitization for rendered content
+- JWT verification for all requests
+- Permission checks everywhere
+- Input validation for ops
+- Rate limiting on edit events
+- Sanitization for rendered content
 
 ---
 
@@ -359,21 +374,21 @@ backend/
 
 ## 17. What This Backend Demonstrates
 
-* Realtime system design
-* Conflict-safe collaboration
-* Event-driven architecture
-* Scalable permission model
-* Production-grade data consistency
+- Realtime system design
+- Conflict-safe collaboration
+- Event-driven architecture
+- Scalable permission model
+- Production-grade data consistency
 
 ---
 
 ## 18. Future Enhancements
 
-* CRDT-based syncing (Yjs / Automerge)
-* Background compaction workers
-* Fine-grained block-based editing
-* Webhooks & integrations
-* Analytics on collaboration patterns
+- CRDT-based syncing (Yjs / Automerge)
+- Background compaction workers
+- Fine-grained block-based editing
+- Webhooks & integrations
+- Analytics on collaboration patterns
 
 ---
 
@@ -381,8 +396,8 @@ backend/
 
 This backend is intentionally designed to be:
 
-* **Correct before clever**
-* **Scalable without complexity**
-* **Easy to explain in interviews**
+- **Correct before clever**
+- **Scalable without complexity**
+- **Easy to explain in interviews**
 
 It mirrors real-world collaborative systems while remaining practical to build and maintain.

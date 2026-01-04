@@ -1,7 +1,12 @@
-import { Notes } from "@/Views";
+import { Notes } from '@/Views'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 function RouteComponent() {
-  return <Notes />;
+    return (
+        <ProtectedRoute>
+            <Notes />
+        </ProtectedRoute>
+    )
 }
 
 export default RouteComponent

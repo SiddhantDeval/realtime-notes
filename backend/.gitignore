@@ -14,4 +14,6 @@
 
 # Test coverage
 /coverage
-/generated/prisma
+
+// Prisma generated files
+prisma/generated

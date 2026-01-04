@@ -7,7 +7,10 @@
             "request": "launch",
             "runtimeExecutable": "tsx",
             "args": ["${workspaceFolder}/src/server.ts"],
-            "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"],
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**"
+            ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "restart": true,
@@ -20,7 +23,10 @@
             "type": "node",
             "request": "attach",
             "port": 4001,
-            "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**"
+            ]
         }
     ]
 }

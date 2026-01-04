@@ -1,144 +1,358 @@
-"use client";
-import { useState, Activity } from "react";
-import { Home, Menu, StickyNote, X } from "lucide-react";
-import { useAuth } from "@/utils/auth";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+'use client'
 
-interface HeaderProps {
-  toggleTheme?: () => void;
-  theme?: "light" | "dark";
-}
-export default function Header(props: HeaderProps) {
-  const { isAuthenticated, logout } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
-  const handleSideNavOpen = () => {
-    setIsOpen((prev) => !prev);
-  };
-  const isCurrentPage = {
-    login: pathname === "/login",
-    register: pathname === "/register",
-    notes: pathname === "/notes",
-    home: pathname === "/",
-  };
+import { useState, useEffect, useRef } from 'react'
+import {
+    Home,
+    Menu,
+    StickyNote,
+    X,
+    Sun,
+    Moon,
+    LogOut,
+    User as UserIcon,
+    ChevronDown,
+    Settings,
+} from 'lucide-react'
+import { useAuth } from '@/context/authContext'
+import { useTheme } from '@/context/themeContext'
 
-  return (
-    <>
-      <header className="min-h-16 px-4 md:px-8 py-2 flex items-center border-b border-gray-200 dark:border-white/10 sm:flex-row">
-        <h1 className="text-xl font-semibold flex items-center gap-3 text-text-primary-light dark:text-text-primary-dark">
-          <Link href="/" className="flex items-center gap-3 fill-current">
-            <img
-              src="/assets/logo.svg"
-              alt="SyncNotes"
-              className="h-10 w-10 fill-current"
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { User } from '@/types'
+
+export default function Header() {
+    const { isAuthenticated, user, logout } = useAuth()
+    const { theme, toggleTheme } = useTheme()
+    const [isMobileOpen, setIsMobileOpen] = useState(false)
+
+    const [isProfileOpen, setIsProfileOpen] = useState(false)
+    const pathname = usePathname()
+    const profileRef = useRef<HTMLDivElement>(null)
+
+    // Close dropdowns on route change
+    useEffect(() => {
+        setIsMobileOpen(false)
+        setIsProfileOpen(false)
+    }, [pathname])
+
+    // Click outside to close profile dropdown
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (
+                profileRef.current &&
+                !profileRef.current.contains(event.target as Node)
+            ) {
+                setIsProfileOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [])
+
+    const isActive = (path: string) => pathname === path
+
+    const getInitials = (u?: User | null) => {
+        if (!u) return 'U'
+        if (u.name) return u.name[0].toUpperCase()
+        if (u.email) return u.email[0].toUpperCase()
+        return 'U'
+    }
+
+    return (
+        <>
+            <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/80 backdrop-blur-xl transition-all">
+                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+
+                    {/* Brand */}
+                    <div className="flex items-center gap-8">
+                        <Link
+                            href="/"
+                            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+                        >
+                            <div className="relative flex items-center justify-center">
+                                <img
+                                    src="/assets/logo.svg"
+                                    alt="Logo"
+                                    className="h-8 w-8"
+                                />
+                            </div>
+                            <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-brand-600 to-brand-400">
+                                SyncNotes
+                            </span>
+                        </Link>
+                    </div>
+
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-1 absolute left-1/2 transform -translate-x-1/2">
+                        <div className="p-1 flex items-center bg-surface-subtle rounded-full border border-border backdrop-blur-md">
+                            <Link
+                                href="/"
+                                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                                    isActive('/')
+                                        ? 'bg-surface shadow-sm text-brand-600'
+                                        : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
+                                }`}
+                            >
+                                <Home size={16} />
+                                <span>Home</span>
+                            </Link>
+
+                            {isAuthenticated && (
+                                <Link
+                                    href="/notes"
+                                    className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                                        isActive('/notes')
+                                            ? 'bg-surface shadow-sm text-brand-600'
+                                            : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
+                                    }`}
+                                >
+                                    <StickyNote size={16} />
+                                    <span>Notes</span>
+                                </Link>
+                            )}
+                        </div>
+                    </nav>
+
+                    {/* Right Actions */}
+                    <div className="hidden md:flex items-center gap-3">
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-full text-text-secondary hover:bg-surface-subtle transition-colors"
+                            aria-label="Toggle theme"
+                        >
+                            {theme === 'dark' ? (
+                                <Moon size={20} />
+                            ) : (
+                                <Sun size={20} />
+                            )}
+                        </button>
+
+                        <div className="h-4 w-px bg-border" />
+
+                        {isAuthenticated ? (
+                            <div className="relative" ref={profileRef}>
+                                <button
+                                    onClick={() =>
+                                        setIsProfileOpen(!isProfileOpen)
+                                    }
+                                    className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-surface-subtle transition-colors group"
+                                >
+                                    {user?.avatarUrl ? (
+                                        <img
+                                            src={user.avatarUrl}
+                                            alt={user.name || 'User'}
+                                            className="h-8 w-8 rounded-full object-cover ring-2 ring-transparent group-hover:ring-border transition-all"
+                                        />
+                                    ) : (
+                                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                            {getInitials(user)}
+                                        </div>
+                                    )}
+                                    <ChevronDown
+                                        size={14}
+                                        className={`text-text-secondary transition-transform duration-200 ${
+                                            isProfileOpen ? 'rotate-180' : ''
+                                        }`}
+                                    />
+                                </button>
+
+                                {/* Dropdown */}
+                                {isProfileOpen && (
+                                    <div className="absolute right-0 top-full mt-2 w-60 bg-surface rounded-2xl shadow-xl border border-border p-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                        <div className="px-3 py-2.5 mb-2 bg-surface-subtle rounded-xl">
+                                            <p className="text-sm font-semibold text-text-primary">
+                                                {user?.name}
+                                            </p>
+                                            <p className="text-xs text-text-secondary truncate">
+                                                {user?.email}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-0.5">
+                                            <Link
+                                                href="/profile"
+                                                className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-text-secondary rounded-xl hover:bg-surface-subtle transition-colors opacity-50 cursor-not-allowed"
+                                            >
+                                                <UserIcon size={16} />
+                                                Profile
+                                            </Link>
+                                            <Link
+                                                href="/settings"
+                                                className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-text-secondary rounded-xl hover:bg-surface-subtle transition-colors opacity-50 cursor-not-allowed"
+                                            >
+                                                <Settings size={16} />
+                                                Settings
+                                            </Link>
+                                        </div>
+
+                                        <div className="mt-2 pt-2 border-t border-border">
+                                            <button
+                                                onClick={() => {
+                                                    logout()
+                                                    setIsProfileOpen(false)
+                                                }}
+                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors"
+                                            >
+                                                <LogOut size={16} />
+                                                Log Out
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-3">
+                                <Link
+                                    href="/login"
+                                    className="px-4 py-2 text-sm font-semibold text-text-secondary hover:text-text-primary transition-colors"
+                                >
+                                    Log In
+                                </Link>
+                                <Link
+                                    href="/register"
+                                    className="px-4 py-2 rounded-full bg-text-primary text-surface text-sm font-bold shadow-lg hover:scale-105 active:scale-95 transition-all"
+                                >
+                                    Get Started
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex md:hidden items-center gap-3">
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-full text-text-secondary hover:bg-surface-subtle transition-colors"
+                        >
+                            {theme === 'dark' ? (
+                                <Moon size={20} />
+                            ) : (
+                                <Sun size={20} />
+                            )}
+                        </button>
+                        <button
+                            onClick={() => setIsMobileOpen(true)}
+                            className="p-2 text-text-primary hover:bg-surface-subtle rounded-full transition-colors"
+                        >
+                            <Menu size={24} />
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            {/* Mobile Navigation Drawer */}
+            <div
+                className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
+                    isMobileOpen
+                        ? 'opacity-100'
+                        : 'opacity-0 pointer-events-none'
+                }`}
+                onClick={() => setIsMobileOpen(false)}
             />
-            <span className="text-xl font-bold">SyncNotes</span>
-          </Link>
-        </h1>
-        <div className="flex-1" />
-        <nav className="hidden md:flex gap-4 items-center">
-          <Activity mode={!isCurrentPage.home ? "visible" : "hidden"}>
-            <Link
-              href="/"
-              className="flex items-center gap-3 p-3 rounded-2xl hover:bg-surface-primary/40 transition-colors"
+
+            <aside
+                className={`fixed top-0 right-0 h-full w-[280px] bg-surface shadow-2xl z-50 transform transition-transform duration-300 ease-out md:hidden flex flex-col border-l border-border ${
+                    isMobileOpen ? 'translate-x-0' : 'translate-x-full'
+                }`}
             >
-              <Home size={20} />
-              <span className="font-medium">Home</span>
-            </Link>
-          </Activity>
-          <Activity mode={isAuthenticated ? "visible" : "hidden"}>
-            <Link
-              href="/notes"
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-primary/20 transition-colors"
-            >
-              <StickyNote size={20} />
-              <span className="font-medium">Notes</span>
-            </Link>
-          </Activity>
+                <div className="p-5 flex items-center justify-between border-b border-border">
+                    <span className="font-bold text-lg text-text-primary">
+                        Menu
+                    </span>
+                    <button
+                        onClick={() => setIsMobileOpen(false)}
+                        className="p-2 text-text-secondary hover:bg-surface-subtle rounded-full transition-colors"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
 
-          <Activity mode={!isAuthenticated ? "visible" : "hidden"}>
-            <Activity mode={!isCurrentPage.login ? "visible" : "hidden"}>
-              <Link
-                href="/login"
-                onClick={logout}
-                className="inline-flex items-center justify-center font-bold px-6 py-3 rounded-2xl btn-ghost focus-Activity:outline-[--color-surface-primary]"
-              >
-                <span className="font-medium">
-                  {isAuthenticated ? "Logout" : "Login"}
-                </span>
-              </Link>
-            </Activity>
-            <Activity mode={!isCurrentPage.register ? "visible" : "hidden"}>
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center font-bold px-6 p-3 rounded-2xl btn-primary focus-visible:outline-surface-primary"
-              >
-                <span className="truncate">Get Started</span>
-              </Link>
-            </Activity>
-          </Activity>
-        </nav>
+                <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-2">
+                    <Link
+                        href="/"
+                        className={`flex items-center gap-3 p-3 rounded-xl font-medium transition-all ${
+                            isActive('/')
+                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400'
+                                : 'text-text-secondary hover:bg-surface-subtle'
+                        }`}
+                        onClick={() => setIsMobileOpen(false)}
+                    >
+                        <Home size={20} />
+                        Home
+                    </Link>
 
-        {/* theme toggle  */}
-        <button
-          onClick={props.toggleTheme}
-          className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-primary/20 transition-colors"
-          aria-label="Toggle theme"
-        >
-          {props.theme}
-        </button>
-        <button
-          onClick={handleSideNavOpen}
-          className="p-2 hover:bg-gray-700 rounded-lg transition-colors block md:hidden"
-          aria-label="Open menu"
-        >
-          <Menu size={24} />
-        </button>
-      </header>
+                    {isAuthenticated && (
+                        <Link
+                            href="/notes"
+                            className={`flex items-center gap-3 p-3 rounded-xl font-medium transition-all ${
+                                isActive('/notes')
+                                    ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400'
+                                    : 'text-text-secondary hover:bg-surface-subtle'
+                            }`}
+                            onClick={() => setIsMobileOpen(false)}
+                        >
+                            <StickyNote size={20} />
+                            Notes
+                        </Link>
+                    )}
 
-      <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-white dark:bg-surface-dark-light shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">SyncNotes</h2>
-          <button
-            onClick={handleSideNavOpen}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Close menu"
-          >
-            <X size={24} />
-          </button>
-        </div>
+                    <div className="my-4 border-t border-border" />
 
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <Link
-            href="/"
-            onClick={handleSideNavOpen}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors"
-            // activeProps={{
-            //   className: "flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors",
-            // }}
-          >
-            <Home size={20} />
-            <span className="font-medium">Home</span>
-          </Link>
-
-          <Link
-            href="/notes"
-            onClick={handleSideNavOpen}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors"
-            // activeProps={{
-            //   className: "flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors",
-            // }}
-          >
-            <StickyNote size={20} />
-            <span className="font-medium">Notes</span>
-          </Link>
-        </nav>
-      </aside>
-    </>
-  );
+                    {isAuthenticated ? (
+                        <>
+                            <div className="px-3 py-2 flex items-center gap-3 mb-4 bg-surface-subtle rounded-2xl">
+                                {user?.avatarUrl ? (
+                                    <img
+                                        src={user.avatarUrl}
+                                        alt="Avatar"
+                                        className="w-10 h-10 rounded-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold shadow-sm">
+                                        {getInitials(user)}
+                                    </div>
+                                )}
+                                <div className="flex flex-col overflow-hidden">
+                                    <span className="font-semibold text-sm text-text-primary truncate">
+                                        {user?.name}
+                                    </span>
+                                    <span className="text-xs text-text-secondary truncate">
+                                        {user?.email}
+                                    </span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    logout()
+                                    setIsMobileOpen(false)
+                                }}
+                                className="flex items-center gap-3 p-3 rounded-xl font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                            >
+                                <LogOut size={20} />
+                                Log Out
+                            </button>
+                        </>
+                    ) : (
+                        <div className="flex flex-col gap-3 mt-auto">
+                            <Link
+                                href="/login"
+                                className="w-full py-3 text-center font-semibold text-text-primary border border-border rounded-2xl hover:bg-surface-subtle transition-colors"
+                                onClick={() => setIsMobileOpen(false)}
+                            >
+                                Log In
+                            </Link>
+                            <Link
+                                href="/register"
+                                className="w-full py-3 text-center font-bold text-surface bg-text-primary rounded-2xl shadow-xl transition-transform active:scale-95"
+                                onClick={() => setIsMobileOpen(false)}
+                            >
+                                Get Started
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            </aside>
+        </>
+    )
 }

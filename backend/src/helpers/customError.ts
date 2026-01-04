@@ -4,7 +4,12 @@ export default class CustomError extends Error {
     public readonly status: number
     public readonly details?: Details
 
-    constructor(errorCode: ErrorCode, status: number = 500, message: string, details?: Details) {
+    constructor(
+        errorCode: ErrorCode,
+        status: number = 500,
+        message: string,
+        details?: Details
+    ) {
         super(message)
         this.name = this.constructor.name
         this.timestamp = new Date()
@@ -13,7 +18,12 @@ export default class CustomError extends Error {
         this.details = details
         Error.captureStackTrace(this, this.constructor)
     }
-    static throwError(errorCode: ErrorCode, status: number = 500, message: string, details?: Details): never {
+    static throwError(
+        errorCode: ErrorCode,
+        status: number = 500,
+        message: string,
+        details?: Details
+    ): never {
         throw new CustomError(errorCode, status, message, details)
     }
 }

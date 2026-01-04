@@ -1,5 +1,5 @@
 import { Response } from 'express'
-import { Prisma } from '@prisma-client/prisma'
+import { Prisma } from 'prisma/client'
 import CustomError from './customError'
 
 type PrismaErrors =
@@ -38,10 +38,14 @@ const HTTP = {
 
 // ---- helpers ---------------------------------------------------------------
 
-const send = <T>(res: Response, status: number, body: ResponseSuccessType<T> | ResponseErrorType): ApiResponse<T> =>
-    res.status(status).json(body)
+const send = <T>(
+    res: Response,
+    status: number,
+    body: ResponseSuccessType<T> | ResponseErrorType
+): ApiResponse<T> => res.status(status).json(body)
 
-const isPrismaKnown = (e: unknown): e is Prisma.PrismaClientKnownRequestError => e instanceof Prisma.PrismaClientKnownRequestError
+const isPrismaKnown = (e: unknown): e is Prisma.PrismaClientKnownRequestError =>
+    e instanceof Prisma.PrismaClientKnownRequestError
 
 const isAnyPrisma = (e: unknown): e is PrismaErrors =>
     e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -51,7 +55,13 @@ const isAnyPrisma = (e: unknown): e is PrismaErrors =>
     e instanceof Prisma.PrismaClientRustPanicError
 
 // Map of Prisma known error codes to status + message builder.
-const PRISMA_KNOWN_MAP: Record<string, (err: Prisma.PrismaClientKnownRequestError) => { status: number; message: string }> = {
+const PRISMA_KNOWN_MAP: Record<
+    string,
+    (err: Prisma.PrismaClientKnownRequestError) => {
+        status: number
+        message: string
+    }
+> = {
     P2002: (e) => ({
         status: HTTP.CONFLICT,
         message: `Unique constraint failed on field: ${e.meta?.target}`,
@@ -66,7 +76,8 @@ const PRISMA_KNOWN_MAP: Record<string, (err: Prisma.PrismaClientKnownRequestErro
     }),
     P2001: (e) => ({
         status: HTTP.NOT_FOUND,
-        message: `Record not found. ${e.meta?.modelName ? `Model: ${e.meta?.modelName}.` : ''} ${e.meta?.details || ''}`.trim(),
+        message:
+            `Record not found. ${e.meta?.modelName ? `Model: ${e.meta?.modelName}.` : ''} ${e.meta?.details || ''}`.trim(),
     }),
     P2004: (e) => ({
         status: HTTP.SERVER_ERROR,
@@ -98,7 +109,8 @@ const PRISMA_KNOWN_MAP: Record<string, (err: Prisma.PrismaClientKnownRequestErro
     }),
     P2025: (e) => ({
         status: HTTP.NOT_FOUND,
-        message: `Record to update or delete not found. ${e.meta?.cause || ''}`.trim(),
+        message:
+            `Record to update or delete not found. ${e.meta?.cause || ''}`.trim(),
     }),
 }
 
@@ -106,12 +118,21 @@ const PRISMA_KNOWN_MAP: Record<string, (err: Prisma.PrismaClientKnownRequestErro
 
 export default class ResponseHelper {
     // Success
-    static success<T>(res: Response, data: T, status: number = HTTP.OK): ApiResponse<T> {
+    static success<T>(
+        res: Response,
+        data: T,
+        status: number = HTTP.OK
+    ): ApiResponse<T> {
         return send<T>(res, status, { success: true, status, data })
     }
 
     // Public error facade (accepts unknown)
-    static error(res: Response, error: unknown, status: number = HTTP.SERVER_ERROR, details?: unknown): ApiResponse<never> {
+    static error(
+        res: Response,
+        error: unknown,
+        status: number = HTTP.SERVER_ERROR,
+        details?: unknown
+    ): ApiResponse<never> {
         // eslint-disable-next-line no-console
         console.error(error)
 
@@ -119,10 +140,18 @@ export default class ResponseHelper {
     }
 
     // Thin convenience wrappers
-    static badRequest(res: Response, message = 'Bad Request', details?: unknown) {
+    static badRequest(
+        res: Response,
+        message = 'Bad Request',
+        details?: unknown
+    ) {
         return this.error(res, message, HTTP.BAD_REQUEST, details)
     }
-    static unauthorized(res: Response, message = 'Unauthorized', details?: unknown) {
+    static unauthorized(
+        res: Response,
+        message = 'Unauthorized',
+        details?: unknown
+    ) {
         return this.error(res, message, HTTP.UNAUTHORIZED, details)
     }
     static forbidden(res: Response, message = 'Forbidden', details?: unknown) {
@@ -134,36 +163,51 @@ export default class ResponseHelper {
     static conflict(res: Response, message = 'Conflict', details?: unknown) {
         return this.error(res, message, HTTP.CONFLICT, details)
     }
-    static internalServerError(res: Response, message = 'Internal Server Error', details?: unknown) {
+    static internalServerError(
+        res: Response,
+        message = 'Internal Server Error',
+        details?: unknown
+    ) {
         return this.error(res, message, HTTP.SERVER_ERROR, details)
     }
-    static validationError(res: Response, message = 'Validation Error', details?: unknown) {
+    static validationError(
+        res: Response,
+        message = 'Validation Error',
+        details?: unknown
+    ) {
         return this.error(res, message, HTTP.UNPROCESSABLE, details)
     }
 
     // ---- internals -----------------------------------------------------------
 
-    private static fromError(res: Response, error: unknown, fallbackStatus: number, details?: unknown): ApiResponse<never> {
+    private static fromError(
+        res: Response,
+        error: unknown,
+        fallbackStatus: number,
+        details?: unknown
+    ): ApiResponse<never> {
         if (isAnyPrisma(error)) {
             return this.prismaErrors(res, error)
         }
 
-        if (error instanceof CustomError) {
-            const status = error.status || fallbackStatus
+        if ((error as any) instanceof CustomError) {
+            const err = error as CustomError
+            const status = err.status || fallbackStatus
             return send(res, status, {
                 success: false,
                 status,
-                error: error.message,
-                errorCode: error.errorCode,
-                details: error.details ?? details,
+                error: err.message,
+                errorCode: err.errorCode,
+                details: err.details ?? details,
             })
         }
 
-        if (error instanceof Error) {
+        if ((error as any) instanceof Error) {
+            const err = error as Error
             return send(res, fallbackStatus, {
                 success: false,
                 status: fallbackStatus,
-                error: error.message,
+                error: err.message,
                 details,
             })
         }
@@ -185,13 +229,20 @@ export default class ResponseHelper {
         })
     }
 
-    private static prismaErrors(res: Response, error: PrismaErrors): ApiResponse<never> {
+    private static prismaErrors(
+        res: Response,
+        error: PrismaErrors
+    ): ApiResponse<never> {
         // Known request errors by code
         if (isPrismaKnown(error)) {
             const build = PRISMA_KNOWN_MAP[error.code]
             if (build) {
                 const { status, message } = build(error)
-                return send(res, status, { success: false, status, error: message })
+                return send(res, status, {
+                    success: false,
+                    status,
+                    error: message,
+                })
             }
             // Unknown known-code
             return send(res, HTTP.SERVER_ERROR, {

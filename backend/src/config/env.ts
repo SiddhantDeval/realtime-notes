@@ -5,10 +5,12 @@ import { z } from 'zod'
 const environment = process.env.NODE_ENV || 'development'
 // Loads from .env file
 dotenv.config({ path: `.env.${environment}` })
+dotenv.config({ path: '.env' })
 
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']),
     PORT: z.string().default('4001'),
+    API_VERSION: z.string().default('v1'),
     JWT_SECRET: z.string(),
     JWT_EXPIRES_IN: z.string().default('1h'),
     JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),

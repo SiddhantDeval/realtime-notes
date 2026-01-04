@@ -1,6 +1,6 @@
-import { Register } from "@/Views";
+import { Register } from '@/Views'
 
 function RouteComponent() {
-  return <Register />;
+    return <Register />
 }
-export default RouteComponent;
+export default RouteComponent

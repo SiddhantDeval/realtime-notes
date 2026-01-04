@@ -1,6 +1,6 @@
-import { Login } from "@/Views";
+import { Login } from '@/Views'
 
 function RouteComponent() {
-  return <Login />;
+    return <Login />
 }
-export default RouteComponent;
+export default RouteComponent
