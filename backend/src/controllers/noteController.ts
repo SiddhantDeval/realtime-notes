@@ -78,8 +78,15 @@ export default class NoteController {
                 return
             }
 
-            const notes = await NoteService.getUserNotes(userId)
-            res.json(notes)
+            const { search, sort, cursor, limit } = req.query
+
+            const notesData = await NoteService.getUserNotes(userId, {
+                search: search as string,
+                sort: sort as string,
+                cursor: cursor as string,
+                limit: limit ? parseInt(limit as string) : undefined,
+            })
+            res.json(notesData)
         } catch (error) {
             next(error)
         }

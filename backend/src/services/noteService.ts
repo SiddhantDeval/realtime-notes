@@ -66,28 +66,78 @@ export default class NoteService {
         }
     }
 
-    static async getUserNotes(userId: string) {
-        // Get notes where user is owner or has permission
-        const notes = await prisma.note.findMany({
-            where: {
-                OR: [
-                    { ownerId: userId },
-                    {
-                        permissions: {
-                            some: { userId: userId },
-                        },
+    static async getUserNotes(
+        userId: string,
+        options: {
+            search?: string
+            sort?: string
+            cursor?: string
+            limit?: number
+        } = {}
+    ) {
+        const { search, sort, cursor, limit = 20 } = options
+
+        // Build where clause
+        const where: any = {
+            OR: [
+                { ownerId: userId },
+                {
+                    permissions: {
+                        some: { userId: userId },
                     },
-                ],
-                isDeleted: false,
-            },
-            orderBy: { updatedAt: 'desc' },
+                },
+            ],
+            isDeleted: false,
+        }
+
+        if (search) {
+            where.AND = {
+                title: {
+                    contains: search,
+                    mode: 'insensitive',
+                },
+            }
+        }
+
+        // Build orderBy
+        let orderBy: any = { updatedAt: 'desc' }
+        if (sort) {
+            const [field, direction] = sort.split(':')
+            if (field && (direction === 'asc' || direction === 'desc')) {
+                orderBy = { [field]: direction }
+            }
+        }
+
+        // Pagination
+        const take = limit + 1 // Fetch 1 extra to check if there are more
+        const queryArgs: any = {
+            where,
+            orderBy,
+            take,
             include: {
                 owner: {
                     select: { name: true, email: true },
                 },
             },
-        })
-        return notes
+        }
+
+        if (cursor) {
+            queryArgs.cursor = { id: cursor }
+            queryArgs.skip = 1 // Skip the cursor itself
+        }
+
+        const notes = await prisma.note.findMany(queryArgs)
+
+        let nextCursor: string | undefined = undefined
+        if (notes.length > limit) {
+            const nextItem = notes.pop()
+            nextCursor = nextItem?.id
+        }
+
+        return {
+            notes,
+            nextCursor,
+        }
     }
 
     static async updateNote(
