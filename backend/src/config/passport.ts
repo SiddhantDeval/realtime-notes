@@ -3,6 +3,7 @@ import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import prisma from '@/models/client'
 import { AuthHelper } from '@/helpers'
+import EmailService from '@/services/emailService'
 
 export const configurePassport = () => {
     passport.use(
@@ -15,6 +16,8 @@ export const configurePassport = () => {
             },
             async (req, accessToken, refreshToken, profile, done) => {
                 try {
+                    console.log('Google Profile:', profile.emails?.[0].value) // Debug log
+                    
                     const email = profile.emails?.[0]?.value
                     if (!email) {
                          return done(new Error("No email found in Google Profile"), undefined);
@@ -34,13 +37,18 @@ export const configurePassport = () => {
                                 email,
                                 name: profile.displayName || email.split('@')[0], 
                                 password: hashedPassword,
-                                avatarUrl: profile.photos?.[0]?.value
+                                avatarUrl: profile.photos?.[0]?.value,
+                                isVerified: true, // Auto-verify Google users
                             },
                         })
+
+                        // Send welcome email asynchronously
+                        EmailService.sendWelcomeEmail(email, user.name || 'User')
                     }
                     
                     return done(null, user);
                 } catch (error) {
+                    console.error('Google Auth Error:', error)
                     return done(error as any, undefined);
                 }
             }
