@@ -1,7 +1,11 @@
 import { Router } from 'express'
 import NoteController from '@/controllers/noteController'
 import { authMiddleware } from '@/middlewares/authMiddleware'
-import { canViewNote, canEditNote, isNoteOwner } from '@/middlewares/notePermissionMiddleware'
+import {
+    canViewNote,
+    canEditNote,
+    isNoteOwner,
+} from '@/middlewares/notePermissionMiddleware'
 
 const router = Router()
 

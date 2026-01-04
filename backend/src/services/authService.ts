@@ -5,7 +5,11 @@ import nodeCrypto from 'crypto'
 import prisma from '@/models/client'
 
 export default class AuthService {
-    static register = async (data: { email: string; passwordPlain: string; full_name: string }) => {
+    static register = async (data: {
+        email: string
+        passwordPlain: string
+        full_name: string
+    }) => {
         const existingUser = await prisma.user.findUnique({
             where: { email: data.email },
         })
@@ -15,10 +19,12 @@ export default class AuthService {
         }
 
         const hashedPassword = await AuthHelper.hashPassword(data.passwordPlain)
-        
+
         // Generate verification token
         const verificationToken = nodeCrypto.randomBytes(32).toString('hex')
-        const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+        const verificationTokenExpiry = new Date(
+            Date.now() + 24 * 60 * 60 * 1000
+        ) // 24 hours
 
         const user = await prisma.user.create({
             data: {
@@ -27,16 +33,26 @@ export default class AuthService {
                 password: hashedPassword,
                 verificationToken,
                 verificationTokenExpiry,
-                isVerified: false
+                isVerified: false,
             },
         })
 
-        const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })
-        const refreshToken = AuthHelper.generateRefreshToken({ id: user.id, email: user.email })
+        const token = AuthHelper.generateJwtToken({
+            id: user.id,
+            email: user.email,
+        })
+        const refreshToken = AuthHelper.generateRefreshToken({
+            id: user.id,
+            email: user.email,
+        })
 
         // Send verification email
-        await EmailService.sendVerificationEmail(user.email, user.name || 'User', verificationToken)
-        
+        await EmailService.sendVerificationEmail(
+            user.email,
+            user.name || 'User',
+            verificationToken
+        )
+
         return { user, token, refreshToken }
     }
 
@@ -52,21 +68,34 @@ export default class AuthService {
                 isActive: true,
                 isVerified: true,
                 createdAt: true,
-                updatedAt: true
-            }
+                updatedAt: true,
+            },
         })
 
         if (!userWithPassword) {
             throw new CustomError('user_not_found', 401, 'User not found')
         }
 
-        const isPasswordValid = await AuthHelper.comparePassword(passwordPlain, userWithPassword.password)
+        const isPasswordValid = await AuthHelper.comparePassword(
+            passwordPlain,
+            userWithPassword.password
+        )
         if (!isPasswordValid) {
-            throw new CustomError('invalid_credentials', 401, 'Invalid email or password')
+            throw new CustomError(
+                'invalid_credentials',
+                401,
+                'Invalid email or password'
+            )
         }
 
-        const token = AuthHelper.generateJwtToken({ id: userWithPassword.id, email: userWithPassword.email })
-        const refreshToken = AuthHelper.generateRefreshToken({ id: userWithPassword.id, email: userWithPassword.email })
+        const token = AuthHelper.generateJwtToken({
+            id: userWithPassword.id,
+            email: userWithPassword.email,
+        })
+        const refreshToken = AuthHelper.generateRefreshToken({
+            id: userWithPassword.id,
+            email: userWithPassword.email,
+        })
 
         const { password, ...rest } = userWithPassword
 
@@ -77,12 +106,16 @@ export default class AuthService {
         const user = await prisma.user.findFirst({
             where: {
                 verificationToken: token,
-                verificationTokenExpiry: { gt: new Date() }
-            }
+                verificationTokenExpiry: { gt: new Date() },
+            },
         })
 
         if (!user) {
-            throw new CustomError('invalid_token', 400, 'Invalid or expired verification token')
+            throw new CustomError(
+                'invalid_token',
+                400,
+                'Invalid or expired verification token'
+            )
         }
 
         await prisma.user.update({
@@ -90,8 +123,8 @@ export default class AuthService {
             data: {
                 isVerified: true,
                 verificationToken: null,
-                verificationTokenExpiry: null
-            }
+                verificationTokenExpiry: null,
+            },
         })
 
         // Send welcome email after verification
@@ -111,11 +144,15 @@ export default class AuthService {
             where: { id: user.id },
             data: {
                 resetPasswordToken: resetToken,
-                resetPasswordExpiry: resetTokenExpiry
-            }
+                resetPasswordExpiry: resetTokenExpiry,
+            },
         })
 
-        await EmailService.sendPasswordResetEmail(user.email, user.name || 'User', resetToken)
+        await EmailService.sendPasswordResetEmail(
+            user.email,
+            user.name || 'User',
+            resetToken
+        )
         return true
     }
 
@@ -123,12 +160,16 @@ export default class AuthService {
         const user = await prisma.user.findFirst({
             where: {
                 resetPasswordToken: token,
-                resetPasswordExpiry: { gt: new Date() }
-            }
+                resetPasswordExpiry: { gt: new Date() },
+            },
         })
 
         if (!user) {
-            throw new CustomError('invalid_token', 400, 'Invalid or expired reset token')
+            throw new CustomError(
+                'invalid_token',
+                400,
+                'Invalid or expired reset token'
+            )
         }
 
         const hashedPassword = await AuthHelper.hashPassword(newPasswordPlain)
@@ -138,8 +179,8 @@ export default class AuthService {
             data: {
                 password: hashedPassword,
                 resetPasswordToken: null,
-                resetPasswordExpiry: null
-            }
+                resetPasswordExpiry: null,
+            },
         })
 
         return true
@@ -150,20 +191,27 @@ export default class AuthService {
     static refreshToken = async (refreshToken: string) => {
         const decoded = AuthHelper.verifyJwtToken(refreshToken)
         if (!decoded || typeof decoded === 'string') {
-            throw new CustomError('invalid_refresh_token', 401, 'Invalid refresh token')
+            throw new CustomError(
+                'invalid_refresh_token',
+                401,
+                'Invalid refresh token'
+            )
         }
 
         const user = await prisma.user.findUnique({
             where: { id: decoded.id },
-            select: { id: true, email: true }, 
+            select: { id: true, email: true },
         })
 
         if (!user) {
             throw new CustomError('user_not_found', 404, 'User not found')
         }
 
-        const token = AuthHelper.generateJwtToken({ id: user.id, email: user.email })
-        
+        const token = AuthHelper.generateJwtToken({
+            id: user.id,
+            email: user.email,
+        })
+
         return { token }
     }
 
@@ -178,7 +226,7 @@ export default class AuthService {
                 updatedAt: true,
                 avatarUrl: true,
                 isActive: true,
-                isVerified: true
+                isVerified: true,
             },
         })
         return user

@@ -50,14 +50,19 @@ export default class NoteService {
 
         // If public/link sharing implemented later, logic goes here.
         // For now, strict check:
-        if (!PermissionService.canView(role) && note.visibility !== $Enums.NoteVisibility.PUBLIC) {
-             // Also check if owner (implicit in permission usually, but good to be safe)
-             if (note.ownerId !== userId) return null
+        if (
+            !PermissionService.canView(role) &&
+            note.visibility !== $Enums.NoteVisibility.PUBLIC
+        ) {
+            // Also check if owner (implicit in permission usually, but good to be safe)
+            if (note.ownerId !== userId) return null
         }
 
         return {
             ...note,
-            role: role || (note.ownerId === userId ? $Enums.NoteRole.OWNER : null),
+            role:
+                role ||
+                (note.ownerId === userId ? $Enums.NoteRole.OWNER : null),
         }
     }
 
@@ -73,14 +78,14 @@ export default class NoteService {
                         },
                     },
                 ],
-                isDeleted: false
+                isDeleted: false,
             },
             orderBy: { updatedAt: 'desc' },
             include: {
                 owner: {
-                    select: { name: true, email: true }
-                }
-            }
+                    select: { name: true, email: true },
+                },
+            },
         })
         return notes
     }
@@ -95,13 +100,15 @@ export default class NoteService {
         if (!note) return null
 
         const permission = await prisma.notePermission.findUnique({
-            where: { noteId_userId: { noteId, userId } }
+            where: { noteId_userId: { noteId, userId } },
         })
 
         // Allow if owner or has appropriate role (e.g. EDITOR/OWNER)
         // For simplicity, checking if owner or permission exists (and not READ_ONLY)
         // You might need more granular permission checks
-        const canEdit = note.ownerId === userId || (permission && permission.role !== 'VIEWER') // Assuming VIEWER exists or similar
+        const canEdit =
+            note.ownerId === userId ||
+            (permission && permission.role !== 'VIEWER') // Assuming VIEWER exists or similar
 
         if (!canEdit) return null
 
@@ -111,7 +118,7 @@ export default class NoteService {
                 title: data.title,
                 visibility: data.visibility,
                 latestContent: data.content,
-            }
+            },
         })
         return updatedNote
     }
@@ -125,7 +132,7 @@ export default class NoteService {
         // Soft delete
         await prisma.note.update({
             where: { id: noteId },
-            data: { isDeleted: true }
+            data: { isDeleted: true },
         })
         return true
     }

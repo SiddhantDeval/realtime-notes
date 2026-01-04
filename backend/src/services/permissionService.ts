@@ -21,7 +21,10 @@ export default class PermissionService {
         }
 
         if (requiredRole === $Enums.NoteRole.EDITOR) {
-            return userRole === $Enums.NoteRole.EDITOR || userRole === $Enums.NoteRole.OWNER
+            return (
+                userRole === $Enums.NoteRole.EDITOR ||
+                userRole === $Enums.NoteRole.OWNER
+            )
         }
 
         if (requiredRole === $Enums.NoteRole.OWNER) {

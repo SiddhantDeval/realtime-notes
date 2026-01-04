@@ -9,29 +9,43 @@ interface EmailOptions {
 
 export default class EmailService {
     private static apiKey = process.env.BREVO_API_KEY
-    private static sender = { email: process.env.SENDER_EMAIL || 'noreply@realtime-notes.com', name: 'Realtime Notes' }
+    private static sender = {
+        email: process.env.SENDER_EMAIL || 'noreply@realtime-notes.com',
+        name: 'Realtime Notes',
+    }
 
-    private static async sendEmail({ to, subject, htmlContent, name }: EmailOptions) {
+    private static async sendEmail({
+        to,
+        subject,
+        htmlContent,
+        name,
+    }: EmailOptions) {
         if (!this.apiKey) {
-            console.warn('BREVO_API_KEY not set. Email not sent:', { to, subject })
+            console.warn('BREVO_API_KEY not set. Email not sent:', {
+                to,
+                subject,
+            })
             return
         }
 
         try {
-            const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-                method: 'POST',
-                headers: {
-                    'accept': 'application/json',
-                    'api-key': this.apiKey,
-                    'content-type': 'application/json'
-                },
-                body: JSON.stringify({
-                    sender: this.sender,
-                    to: [{ email: to, name: name || to.split('@')[0] }],
-                    subject: subject,
-                    htmlContent: htmlContent
-                })
-            })
+            const response = await fetch(
+                'https://api.brevo.com/v3/smtp/email',
+                {
+                    method: 'POST',
+                    headers: {
+                        accept: 'application/json',
+                        'api-key': this.apiKey,
+                        'content-type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sender: this.sender,
+                        to: [{ email: to, name: name || to.split('@')[0] }],
+                        subject: subject,
+                        htmlContent: htmlContent,
+                    }),
+                }
+            )
 
             if (!response.ok) {
                 const error = await response.json()
@@ -44,7 +58,12 @@ export default class EmailService {
         }
     }
 
-    private static getBaseTemplate(title: string, body: string, actionUrl?: string, actionText?: string) {
+    private static getBaseTemplate(
+        title: string,
+        body: string,
+        actionUrl?: string,
+        actionText?: string
+    ) {
         return `
         <!DOCTYPE html>
         <html>
@@ -77,7 +96,11 @@ export default class EmailService {
         `
     }
 
-    static async sendVerificationEmail(to: string, name: string, token: string) {
+    static async sendVerificationEmail(
+        to: string,
+        name: string,
+        token: string
+    ) {
         const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`
         const html = this.getBaseTemplate(
             'Verify your Email',
@@ -85,10 +108,19 @@ export default class EmailService {
             verifyUrl,
             'Verify Email'
         )
-        await this.sendEmail({ to, subject: 'Verify your email', htmlContent: html, name })
+        await this.sendEmail({
+            to,
+            subject: 'Verify your email',
+            htmlContent: html,
+            name,
+        })
     }
 
-    static async sendPasswordResetEmail(to: string, name: string, token: string) {
+    static async sendPasswordResetEmail(
+        to: string,
+        name: string,
+        token: string
+    ) {
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`
         const html = this.getBaseTemplate(
             'Reset your Password',
@@ -96,7 +128,12 @@ export default class EmailService {
             resetUrl,
             'Reset Password'
         )
-        await this.sendEmail({ to, subject: 'Reset Password Request', htmlContent: html, name })
+        await this.sendEmail({
+            to,
+            subject: 'Reset Password Request',
+            htmlContent: html,
+            name,
+        })
     }
 
     static async sendWelcomeEmail(to: string, name: string) {
@@ -106,6 +143,11 @@ export default class EmailService {
             `${process.env.FRONTEND_URL}/notes`,
             'Go to Dashboard'
         )
-        await this.sendEmail({ to, subject: 'Welcome!', htmlContent: html, name })
+        await this.sendEmail({
+            to,
+            subject: 'Welcome!',
+            htmlContent: html,
+            name,
+        })
     }
 }

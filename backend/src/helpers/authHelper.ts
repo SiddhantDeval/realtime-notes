@@ -1,4 +1,4 @@
-import jwt, {type SignOptions} from 'jsonwebtoken'
+import jwt, { type SignOptions } from 'jsonwebtoken'
 import * as bcrypt from 'bcrypt'
 import { type User } from 'prisma/client'
 import { authConfig } from '@/config'
@@ -6,18 +6,27 @@ import CustomError from './customError'
 export default class AuthHelper {
     static jwtSecret = authConfig.jwtSecret
     static jwtExpiresIn = authConfig.jwtExpiresIn as SignOptions['expiresIn']
-    static jwtRefreshExpiresIn = authConfig.jwtRefreshExpiresIn as SignOptions['expiresIn']
+    static jwtRefreshExpiresIn =
+        authConfig.jwtRefreshExpiresIn as SignOptions['expiresIn']
 
     static generateJwtToken = (user: Pick<User, 'id' | 'email'>) => {
-        const token = jwt.sign({ id: user.id, email: user.email }, AuthHelper.jwtSecret, {
-            expiresIn: AuthHelper.jwtExpiresIn,
-        })
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            AuthHelper.jwtSecret,
+            {
+                expiresIn: AuthHelper.jwtExpiresIn,
+            }
+        )
         return token
     }
     static generateRefreshToken = (user: Pick<User, 'id' | 'email'>) => {
-        const token = jwt.sign({ id: user.id, email: user.email }, AuthHelper.jwtSecret, {
-            expiresIn: AuthHelper.jwtRefreshExpiresIn,
-        })
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            AuthHelper.jwtSecret,
+            {
+                expiresIn: AuthHelper.jwtRefreshExpiresIn,
+            }
+        )
         return token
     }
 
@@ -32,7 +41,11 @@ export default class AuthHelper {
             if (error instanceof jwt.JsonWebTokenError) {
                 throw new CustomError('invalid_token', 401, 'Invalid token')
             }
-            throw new CustomError('failed_to_authenticate_token', 401, 'Failed to authenticate token')
+            throw new CustomError(
+                'failed_to_authenticate_token',
+                401,
+                'Failed to authenticate token'
+            )
         }
     }
 

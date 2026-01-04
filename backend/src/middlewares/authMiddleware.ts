@@ -1,7 +1,11 @@
 import { ResponseHelper, AuthHelper } from '@/helpers'
 import { Request, Response, NextFunction } from 'express'
 
-export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
     const authorization = req.headers['authorization']
     if (!authorization) {
         return ResponseHelper.unauthorized(res, 'No authorization header')
@@ -14,7 +18,10 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     try {
         const decoded = AuthHelper.verifyJwtToken(token)
         if (!decoded) {
-            return ResponseHelper.unauthorized(res, 'Failed to authenticate token')
+            return ResponseHelper.unauthorized(
+                res,
+                'Failed to authenticate token'
+            )
         }
         req.user = decoded // Assign the user to the request object
     } catch (error) {
@@ -23,4 +30,3 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     next()
 }
-

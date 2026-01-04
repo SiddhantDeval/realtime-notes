@@ -3,7 +3,6 @@ import prisma from '@/models/client'
 import { ResponseHelper, ErrorHelper } from '@/helpers'
 import { authMiddleware } from '@/middlewares/authMiddleware'
 
-
 const router = Router()
 
 router.post('/', async (req, res) => {
@@ -62,7 +61,11 @@ router.delete('/:id', async (req, res) => {
         await prisma.user.delete({
             where: { id: id },
         })
-        ResponseHelper.success(res, { message: 'User deleted successfully' }, 204)
+        ResponseHelper.success(
+            res,
+            { message: 'User deleted successfully' },
+            204
+        )
     } catch (error) {
         ResponseHelper.error(res, error)
     }

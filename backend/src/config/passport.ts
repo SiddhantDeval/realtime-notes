@@ -1,4 +1,3 @@
-
 import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import prisma from '@/models/client'
@@ -17,25 +16,32 @@ export const configurePassport = () => {
             async (req, accessToken, refreshToken, profile, done) => {
                 try {
                     console.log('Google Profile:', profile.emails?.[0].value) // Debug log
-                    
+
                     const email = profile.emails?.[0]?.value
                     if (!email) {
-                         return done(new Error("No email found in Google Profile"), undefined);
+                        return done(
+                            new Error('No email found in Google Profile'),
+                            undefined
+                        )
                     }
-                    
+
                     let user = await prisma.user.findUnique({
                         where: { email },
                     })
 
                     if (!user) {
                         // Generate random password for google users
-                        const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
-                        const hashedPassword = await AuthHelper.hashPassword(randomPassword);
+                        const randomPassword =
+                            Math.random().toString(36).slice(-8) +
+                            Math.random().toString(36).slice(-8)
+                        const hashedPassword =
+                            await AuthHelper.hashPassword(randomPassword)
 
                         user = await prisma.user.create({
                             data: {
                                 email,
-                                name: profile.displayName || email.split('@')[0], 
+                                name:
+                                    profile.displayName || email.split('@')[0],
                                 password: hashedPassword,
                                 avatarUrl: profile.photos?.[0]?.value,
                                 isVerified: true, // Auto-verify Google users
@@ -43,29 +49,32 @@ export const configurePassport = () => {
                         })
 
                         // Send welcome email asynchronously
-                        EmailService.sendWelcomeEmail(email, user.name || 'User')
+                        EmailService.sendWelcomeEmail(
+                            email,
+                            user.name || 'User'
+                        )
                     }
-                    
-                    return done(null, user);
+
+                    return done(null, user)
                 } catch (error) {
                     console.error('Google Auth Error:', error)
-                    return done(error as any, undefined);
+                    return done(error as any, undefined)
                 }
             }
         )
     )
-    
+
     // Serialization
     passport.serializeUser((user: any, done) => {
-        done(null, user.id);
-    });
-    
+        done(null, user.id)
+    })
+
     passport.deserializeUser(async (id: string, done) => {
         try {
-            const user = await prisma.user.findUnique({ where: { id } });
-            done(null, user);
+            const user = await prisma.user.findUnique({ where: { id } })
+            done(null, user)
         } catch (err) {
-            done(err, null);
+            done(err, null)
         }
-    });
+    })
 }

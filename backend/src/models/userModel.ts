@@ -14,7 +14,12 @@ class UserModel {
         return prisma.user.findMany()
     }
 
-    static async create(data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'isActive' | 'avatarUrl'>) {
+    static async create(
+        data: Omit<
+            User,
+            'id' | 'createdAt' | 'updatedAt' | 'isActive' | 'avatarUrl'
+        >
+    ) {
         return prisma.user.create({ data })
     }
 

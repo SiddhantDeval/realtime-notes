@@ -9,12 +9,17 @@ import type { NoteRole } from 'prisma/client'
  * Middleware to check if user has permission to access a note
  * Requires authMiddleware to run first to populate req.user
  */
-export const checkNotePermission = (requiredRole: NoteRole = $Enums.NoteRole.VIEWER) => {
+export const checkNotePermission = (
+    requiredRole: NoteRole = $Enums.NoteRole.VIEWER
+) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             const userId = req.user?.id
             if (!userId) {
-                return ResponseHelper.unauthorized(res, 'User not authenticated')
+                return ResponseHelper.unauthorized(
+                    res,
+                    'User not authenticated'
+                )
             }
 
             const noteId = req.params.id || req.params.noteId
@@ -54,7 +59,10 @@ export const checkNotePermission = (requiredRole: NoteRole = $Enums.NoteRole.VIE
             const userRole = permission?.role || null
 
             // Check if note is public and no specific permission required
-            if (note.visibility === $Enums.NoteVisibility.PUBLIC && requiredRole === $Enums.NoteRole.VIEWER) {
+            if (
+                note.visibility === $Enums.NoteVisibility.PUBLIC &&
+                requiredRole === $Enums.NoteRole.VIEWER
+            ) {
                 req.userRole = $Enums.NoteRole.VIEWER
                 req.note = note
                 return next()
@@ -62,7 +70,10 @@ export const checkNotePermission = (requiredRole: NoteRole = $Enums.NoteRole.VIE
 
             // Check if user has required permission
             if (!PermissionService.hasPermission(userRole, requiredRole)) {
-                return ResponseHelper.forbidden(res, 'You do not have permission to perform this action')
+                return ResponseHelper.forbidden(
+                    res,
+                    'You do not have permission to perform this action'
+                )
             }
 
             // Attach user role and note to request

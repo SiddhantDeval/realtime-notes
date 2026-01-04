@@ -9,5 +9,4 @@ router.use('/auth', authRoutes)
 router.use('/users', usersRoutes)
 router.use('/notes', noteRoutes)
 
-
 export default router

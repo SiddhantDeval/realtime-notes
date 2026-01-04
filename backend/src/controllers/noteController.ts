@@ -6,7 +6,11 @@ import { NoteVisibility } from 'prisma/client'
 // See src/types/express/index.d.ts for type definitions
 
 export default class NoteController {
-    static createNote = async (req: Request, res: Response, next: NextFunction) => {
+    static createNote = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
         try {
             const userId = req.user?.id
             if (!userId) {
@@ -34,7 +38,11 @@ export default class NoteController {
         }
     }
 
-    static getNote = async (req: Request, res: Response, next: NextFunction) => {
+    static getNote = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
         try {
             const userId = req.user?.id
             if (!userId) {
@@ -46,7 +54,9 @@ export default class NoteController {
             const note = await NoteService.getNote(id, userId)
 
             if (!note) {
-                res.status(404).json({ error: 'Note not found or access denied' })
+                res.status(404).json({
+                    error: 'Note not found or access denied',
+                })
                 return
             }
 
@@ -56,7 +66,11 @@ export default class NoteController {
         }
     }
 
-    static getMyNotes = async (req: Request, res: Response, next: NextFunction) => {
+    static getMyNotes = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
         try {
             const userId = req.user?.id
             if (!userId) {
@@ -71,7 +85,11 @@ export default class NoteController {
         }
     }
 
-    static updateNote = async (req: Request, res: Response, next: NextFunction) => {
+    static updateNote = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
         try {
             const userId = req.user?.id
             if (!userId) {
@@ -85,11 +103,13 @@ export default class NoteController {
             const note = await NoteService.updateNote(id, userId, {
                 title,
                 visibility: visibility as NoteVisibility,
-                content
+                content,
             })
 
             if (!note) {
-                res.status(404).json({ error: 'Note not found or access denied' })
+                res.status(404).json({
+                    error: 'Note not found or access denied',
+                })
                 return
             }
 
@@ -99,7 +119,11 @@ export default class NoteController {
         }
     }
 
-    static deleteNote = async (req: Request, res: Response, next: NextFunction) => {
+    static deleteNote = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
         try {
             const userId = req.user?.id
             if (!userId) {
@@ -111,7 +135,9 @@ export default class NoteController {
             const success = await NoteService.deleteNote(id, userId)
 
             if (!success) {
-                res.status(404).json({ error: 'Note not found or access denied' })
+                res.status(404).json({
+                    error: 'Note not found or access denied',
+                })
                 return
             }
 

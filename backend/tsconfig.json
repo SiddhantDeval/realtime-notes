@@ -9,7 +9,7 @@
         "isolatedModules": true,
         "paths": {
             "@/*": ["./src/*"],
-            "prisma/*": ["./prisma/generated/prisma/*"],
+            "prisma/*": ["./prisma/generated/prisma/*"]
         }
     },
     "include": ["./src/**/*.ts"]

@@ -15,10 +15,16 @@ router.post('/reset-password', AuthController.resetPassword)
 router.get('/me', authMiddleware, AuthController.me)
 
 // Google Auth
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }))
+router.get(
+    '/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+)
 router.get(
     '/google/callback',
-    passport.authenticate('google', { failureRedirect: '/login', session: false }),
+    passport.authenticate('google', {
+        failureRedirect: '/login',
+        session: false,
+    }),
     AuthController.googleCallback
 )
 
