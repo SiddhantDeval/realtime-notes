@@ -8,7 +8,7 @@ export default class AuthService {
     static register = async (data: {
         email: string
         passwordPlain: string
-        full_name: string
+        name: string
     }) => {
         const existingUser = await prisma.user.findUnique({
             where: { email: data.email },
@@ -29,7 +29,7 @@ export default class AuthService {
         const user = await prisma.user.create({
             data: {
                 email: data.email,
-                name: data.full_name,
+                name: data.name,
                 password: hashedPassword,
                 verificationToken,
                 verificationTokenExpiry,

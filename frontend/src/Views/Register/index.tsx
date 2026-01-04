@@ -51,7 +51,7 @@ export default function Register() {
         onSubmit: async ({ value }) => {
             try {
                 const res = await Api.client.register({
-                    full_name: value.fullName,
+                    name: value.fullName,
                     email: value.email,
                     password: value.password,
                 })
