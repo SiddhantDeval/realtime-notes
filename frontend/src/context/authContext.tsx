@@ -112,7 +112,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (data && data.token) {
                 setSession({
                     token: data.token,
-                    user: data.user || { id: '', email, name: 'User' },
+                    user: data.user || {
+                        id: '',
+                        email,
+                        name: email.split('@')[0],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                    },
                 })
 
                 const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
