@@ -1,14 +1,12 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
-import { localStorageAuthKey } from '@/context/authContext'
-import { toast } from 'sonner'
+import axios, { AxiosInstance, AxiosResponse } from 'axios'
 
 export class Api {
-    static client = new Api()
     private axiosInstance: AxiosInstance
 
     constructor(
         private readonly baseURL: string = process.env.NEXT_PUBLIC_API_URL ||
-            'http://localhost:4001/api/v1'
+            'http://localhost:4001/api/v1',
+        private readonly localStorageAuthKey: string = 'auth_session'
     ) {
         this.axiosInstance = axios.create({
             baseURL,
@@ -23,7 +21,9 @@ export class Api {
             (config) => {
                 // Avoid server-side localStorage access if using SSR (though this is mostly client-side app)
                 if (typeof window !== 'undefined') {
-                    const authString = localStorage.getItem(localStorageAuthKey)
+                    const authString = localStorage.getItem(
+                        this.localStorageAuthKey
+                    )
                     if (authString) {
                         try {
                             const auth = JSON.parse(authString)
@@ -69,49 +69,52 @@ export class Api {
 
     // --- Auth Endpoints ---
 
-    login = async (payload: { email: string; password: string }) => {
+    public login = async (payload: { email: string; password: string }) => {
         return this.axiosInstance.post('/auth/login', payload)
     }
 
-    register = async (payload: {
+    public register = async (payload: {
         email: string
         password: string
-        full_name: string
+        name: string
     }) => {
         return this.axiosInstance.post('/auth/register', payload)
     }
 
-    logout = async () => {
+    public logout = async () => {
         return this.axiosInstance.post('/auth/logout')
     }
 
-    me = async () => {
-        return this.axiosInstance.get('/auth/me')
+    public me = async <T>() => {
+        return this.axiosInstance.get<T>('/auth/me')
     }
 
-    refreshToken = async () => {
+    public refreshToken = async () => {
         return this.axiosInstance.post('/auth/refresh-token')
     }
 
     // --- Note Endpoints ---
 
-    getNotes = async () => {
+    public getNotes = async () => {
         // Assuming GET /notes returns { success: true, data: [...] } or just [...]
         const res = await this.axiosInstance.get('/notes')
         return res.data
     }
 
-    getNote = async (id: string) => {
+    public getNote = async (id: string) => {
         const res = await this.axiosInstance.get(`/notes/${id}`)
         return res.data
     }
 
-    createNote = async (payload: { title: string; content?: string }) => {
+    public createNote = async (payload: {
+        title: string
+        content?: string
+    }) => {
         const res = await this.axiosInstance.post('/notes', payload)
         return res.data
     }
 
-    updateNote = async (
+    public updateNote = async (
         id: string,
         payload: { title?: string; content?: string }
     ) => {
@@ -119,7 +122,7 @@ export class Api {
         return res.data
     }
 
-    deleteNote = async (id: string) => {
+    public deleteNote = async (id: string) => {
         const res = await this.axiosInstance.delete(`/notes/${id}`)
         return res.data
     }
