@@ -24,7 +24,6 @@ A reusable component that wraps pages requiring authentication:
 ### 2. Protected Pages
 The following pages are now protected:
 - `/notes` - Requires authentication to view notes list
-- `/note/[id]` - Requires authentication to view/edit individual notes
 
 ### 3. Auth Context Enhancement
 **Location**: `/frontend/src/context/authContext.tsx`

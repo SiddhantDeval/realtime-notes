@@ -53,7 +53,7 @@ export default function Notes() {
       const noteId = note.id;
       
       if (noteId) {
-          router.push(`/note/${noteId}`);
+          router.push(`/notes/${noteId}`);
       }
     } catch (error) {
       console.error("Failed to create note", error);
@@ -95,7 +95,7 @@ export default function Notes() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredNotes.map((note) => (
-                <Link key={note.id} href={`/note/${note.id}`}>
+                <Link key={note.id} href={`/notes/${note.id}`}>
                     <div className="flex flex-col items-stretch justify-start rounded-xl bg-white dark:bg-[#1f1d33] shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer h-full">
                         <div
                             className="w-full bg-center bg-no-repeat aspect-[16/10] bg-cover"

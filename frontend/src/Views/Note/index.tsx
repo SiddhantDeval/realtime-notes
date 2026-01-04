@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { Api } from "@/api";
-import { useParams } from "next/navigation";
 
 // --- Helpers ---
 function uuid() {
@@ -96,7 +95,7 @@ export default function Note({ noteId }: { noteId: string }) {
             setLoading(false);
         }
     }
-    load();
+    if (noteId) load();
   }, [noteId]);
 
   // Socket Logic
