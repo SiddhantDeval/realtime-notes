@@ -97,8 +97,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             const res = await AuthService.refreshToken()
             if (res && res.data && res.data.token) {
+                const newToken = res.data.token
+                AuthService.setToken(newToken)
                 setSession((prev) =>
-                    prev ? { ...prev, token: res.data.token } : null
+                    prev ? { ...prev, token: newToken } : null
                 )
             }
         } catch (error) {
