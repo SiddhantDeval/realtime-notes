@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/authContext'
 import { client } from '@/api/client'
@@ -73,8 +73,8 @@ export default function Notes() {
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             setCursor(undefined)
-            setHasMore(true) // Reset hasMore on new search
-            setNotes([])     // Clear current notes before new search
+            setHasMore(true)
+            setNotes([])
             loadNotes(true)
         }, 500)
         return () => clearTimeout(timeoutId)
@@ -96,51 +96,23 @@ export default function Notes() {
         }
     }
 
-    if (!user && initialLoaded) {
-        // Optionally handle redirect if protected route doesn't catch it
-    }
-
     return (
         <div className="bg-surface-subtle dark:bg-surface-subtle min-h-screen flex flex-col">
             <div className="relative h-full flex flex-col flex-1">
-                {/* Scrollable Container with ID for InfiniteScroll */}
-                <div 
-                    className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto h-[calc(100vh-64px)]" 
+                <div
+                    className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto h-[calc(100vh-64px)]"
                     id="scrollableDiv"
                 >
                     <div className="w-full max-w-6xl mx-auto">
                         <div className="flex flex-col gap-6 mb-8">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div>
-                                    <h1 className="text-2xl sm:text-3xl font-bold text-text-primary dark:text-text-primary tracking-tight">
-                                        Discussions
-                                    </h1>
-                                    <p className="text-text-secondary dark:text-text-secondary mt-1">
-                                        Manage and organize your team's notes
-                                        and ideas.
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={handleCreateNote}
-                                    className="btn-primary flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 gap-2 text-base font-bold leading-normal tracking-[0.015em] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-                                >
-                                    <span className="flex items-center justify-center">
-                                        <Plus className="w-5 h-5" />
-                                    </span>
-                                    <span className="truncate">
-                                        New Discussion
-                                    </span>
-                                </button>
-                            </div>
-
                             <div className="flex flex-col sm:flex-row gap-4 items-stretch">
                                 <label className="flex flex-col w-full group">
                                     <div className="flex w-full flex-1 items-stretch rounded-xl h-12 shadow-sm transition-all duration-200 ring-1 ring-border focus-within:ring-2 focus-within:ring-primary/50 bg-surface dark:bg-surface">
-                                        <div className="text-text-tertiary dark:text-text-tertiary flex items-center justify-center pl-4">
+                                        <div className="text-text-tertiary flex items-center justify-center pl-4">
                                             <SearchIcon className="w-5 h-5" />
                                         </div>
                                         <input
-                                            className="flex w-full min-w-0 flex-1 bg-transparent border-none h-full placeholder:text-text-tertiary px-4 pl-2 text-base text-text-primary focus:outline-none"
+                                            className="flex w-full min-w-0 flex-1 bg-transparent border-none h-full placeholder:text-text-tertiary px-4 pl-2 text-sm text-text-secondary focus:outline-none"
                                             placeholder="Search discussions..."
                                             value={search}
                                             onChange={(e) =>
@@ -158,14 +130,14 @@ export default function Notes() {
                                     </div>
                                 </label>
 
-                                <div className="min-w-[200px]">
+                                <div className="min-w-[160px]">
                                     <div className="relative h-12 w-full">
                                         <select
                                             value={sort}
                                             onChange={(e) =>
                                                 setSort(e.target.value)
                                             }
-                                            className="appearance-none w-full h-full px-4 rounded-xl bg-surface dark:bg-surface text-text-primary border border-border focus:ring-2 focus:ring-primary/50 cursor-pointer shadow-sm pr-10 font-medium outline-none"
+                                            className="text-xs appearance-none w-full h-full px-4 rounded-xl bg-surface text-text-secondary border border-border focus:ring-2 focus:ring-primary/50 cursor-pointer shadow-sm pr-10 font-medium outline-none"
                                         >
                                             <option value="updatedAt:desc">
                                                 Recently Updated
@@ -185,15 +157,48 @@ export default function Notes() {
                                         </div>
                                     </div>
                                 </div>
+
+                                <button
+                                    onClick={handleCreateNote}
+                                    className="btn-primary flex cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-8 gap-2 text-base font-bold leading-normal tracking-[0.015em] hover:shadow-lg active:scale-95 transition-all duration-200"
+                                >
+                                    <span className="flex items-center justify-center">
+                                        <Plus className="w-6 h-6 font-extrabold" />
+                                    </span>
+                                    <span className="flex items-center justify-center">
+                                        Note
+                                    </span>
+                                </button>
                             </div>
                         </div>
 
-                        {notes.length === 0 && !loading && (
+                        {loading && notes.length === 0 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
+                                {[...Array(6)].map((_, i) => (
+                                    <div key={`initial-skeleton-${i}`}>
+                                        <NoteCardSkeleton />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {notes.length === 0 && !loading && initialLoaded && (
                             <div className="flex flex-col items-center justify-center py-24 text-center animate-in fade-in duration-500">
-                                <div className="bg-surface dark:bg-surface p-6 rounded-full shadow-sm mb-6 border border-border">
+                                <div className="bg-surface p-6 rounded-full shadow-sm mb-6 border border-border">
                                     <div className="text-primary/50">
-                                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={1.5}
+                                            stroke="currentColor"
+                                            className="w-12 h-12"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                                            />
                                         </svg>
                                     </div>
                                 </div>
@@ -224,7 +229,7 @@ export default function Notes() {
                             hasMore={hasMore}
                             loader={
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-8 mt-6">
-                                     {[...Array(3)].map((_, i) => (
+                                    {[...Array(3)].map((_, i) => (
                                         <div key={`skeleton-${i}`}>
                                             <NoteCardSkeleton />
                                         </div>
@@ -232,7 +237,7 @@ export default function Notes() {
                                 </div>
                             }
                             scrollableTarget="scrollableDiv"
-                            className="overflow-hidden" // Prevents double scrollbars
+                            className="overflow-hidden"
                         >
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
                                 {notes.map((note) => (
