@@ -14,17 +14,15 @@ import {
     Settings,
 } from 'lucide-react'
 import { useAuth } from '@/context/authContext'
+import { useTheme } from '@/context/themeContext'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { User } from '@/types'
 
-interface HeaderProps {
-    toggleTheme?: () => void
-    theme?: 'light' | 'dark'
-}
-
-export default function Header({ toggleTheme, theme }: HeaderProps) {
+export default function Header() {
     const { isAuthenticated, user, logout } = useAuth()
+    const { theme, toggleTheme } = useTheme()
     const [isMobileOpen, setIsMobileOpen] = useState(false)
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const pathname = usePathname()
