@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useSocket } from '@/hooks/useSocket'
-import { Api } from '@/api'
-import { client } from '@/api/client'
+import { NoteService } from '@/api/noteService'
 
 // --- Helpers ---
 function uuid() {
@@ -86,9 +85,8 @@ export default function Note({ noteId }: { noteId: string }) {
     useEffect(() => {
         async function load() {
             try {
-                const res = await client.getNote(noteId)
-                // Handling robust response: { data: note } or just note
-                const note = res.data || res
+                const res = await NoteService.getNote(noteId)
+                const note = res.data
                 if (note) {
                     setContent(note.latestContent || '')
                     prevContentRef.current = note.latestContent || ''
@@ -207,7 +205,7 @@ export default function Note({ noteId }: { noteId: string }) {
     }
 
     function saveTitle() {
-        client.updateNote(noteId, { title }).catch(console.error)
+        NoteService.updateNote(noteId, { title }).catch(console.error)
     }
 
     if (loading) return <div>Loading...</div>

@@ -3,26 +3,15 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/authContext'
-import { client } from '@/api/client'
+import { NoteService } from '@/api/noteService'
 import NoteCard from '@/components/NoteCard'
 import NoteCardSkeleton from '@/components/NoteCardSkeleton'
 import { ChevronDown, CircleX, Plus, SearchIcon } from 'lucide-react'
 import InfiniteScroll from 'react-infinite-scroll-component'
-
-interface NoteItem {
-    id: string
-    title: string
-    updatedAt: string
-    content: string
-    ownerId: string
-    owner: {
-        name: string
-        email: string
-    }
-}
+import { Note } from '@/types'
 
 export default function Notes() {
-    const [notes, setNotes] = useState<NoteItem[]>([])
+    const [notes, setNotes] = useState<Note[]>([])
     const [search, setSearch] = useState('')
     const [sort, setSort] = useState('updatedAt:desc')
     const [cursor, setCursor] = useState<string | undefined>(undefined)
@@ -31,25 +20,24 @@ export default function Notes() {
     const [initialLoaded, setInitialLoaded] = useState(false)
 
     const router = useRouter()
-    const { user } = useAuth()
+    const { user, isAuthenticated } = useAuth()
 
     const loadNotes = useCallback(
         async (reset = false) => {
-            if (loading && !reset) return
+            if (loading && !reset || !isAuthenticated) return
             setLoading(true)
-
             try {
                 const currentCursor = reset ? undefined : cursor
-                const res = await client.getNotes({
+                const res = await NoteService.getNotes({
                     search,
                     sort,
                     cursor: currentCursor,
-                    limit: 20,
+                    limit: 4,
                 })
 
-                const data = res.data || res
-                const newNotes = data.notes || []
-                const nextCursor = data.nextCursor
+                const payload = res.data
+                const newNotes = payload.notes || []
+                const nextCursor = payload.nextCursor
 
                 if (reset) {
                     setNotes(newNotes)
@@ -66,7 +54,7 @@ export default function Notes() {
                 setInitialLoaded(true)
             }
         },
-        [search, sort, cursor, loading]
+        [isAuthenticated, search, sort, cursor, loading]
     )
 
     // Debounce search
@@ -83,11 +71,11 @@ export default function Notes() {
 
     const handleCreateNote = async () => {
         try {
-            const newNote = await client.createNote({
+            const res = await NoteService.createNote({
                 title: 'Untitled Discussion',
                 content: '',
             })
-            const note = newNote.data || newNote
+            const note = res.data.note
             if (note?.id) {
                 router.push(`/notes/${note.id}`)
             }
@@ -95,14 +83,10 @@ export default function Notes() {
             console.error('Failed to create note', error)
         }
     }
-
     return (
         <div className="bg-surface-subtle dark:bg-surface-subtle min-h-screen flex flex-col">
             <div className="relative h-full flex flex-col flex-1">
-                <div
-                    className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto h-[calc(100vh-64px)]"
-                    id="scrollableDiv"
-                >
+                <div className="flex-1 p-4 sm:p-6 lg:p-8">
                     <div className="w-full max-w-6xl mx-auto">
                         <div className="flex flex-col gap-6 mb-8">
                             <div className="flex flex-col sm:flex-row gap-4 items-stretch">
@@ -229,15 +213,14 @@ export default function Notes() {
                             hasMore={hasMore}
                             loader={
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-8 mt-6">
-                                    {[...Array(3)].map((_, i) => (
+                                    {[...Array(6)].map((_, i) => (
                                         <div key={`skeleton-${i}`}>
                                             <NoteCardSkeleton />
                                         </div>
                                     ))}
                                 </div>
                             }
-                            scrollableTarget="scrollableDiv"
-                            className="overflow-hidden"
+                            className="overflow-visible"
                         >
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
                                 {notes.map((note) => (

@@ -1,12 +1,19 @@
 export interface Note {
     id: string
     title: string
-    content: string
-    createdAt: string
     updatedAt: string
-    userId?: string
+    latestContent: string
+    version: number
+    ownerId: string
+    owner: {
+        name: string
+        email: string
+    }
 }
 
-export type CreateNoteInput = Pick<Note, 'title' | 'content'>
+export interface CreateNoteInput {
+    title: string
+    content?: string
+}
 
 export type UpdateNoteInput = Partial<CreateNoteInput>

@@ -10,7 +10,7 @@ import React, {
 } from 'react'
 import { toast } from 'sonner'
 import { useRouter, usePathname } from 'next/navigation'
-import { Auth } from '@/api/auth'
+import { AuthService } from '@/api/auth'
 import { AuthSession, User } from '@/types'
 
 export interface AuthContextType {
@@ -39,13 +39,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 1. Initialize from LocalStorage using Auth class
     useEffect(() => {
         const initAuth = async () => {
-            const stored = Auth.getSession()
+            const stored = AuthService.getSession()
             if (stored && stored.token) {
                 // Check validity
-                if (!Auth.isTokenExpired(stored.token)) {
+                if (!AuthService.isTokenExpired(stored.token)) {
+                    AuthService.setToken(stored.token)
                     setSession(stored)
                 } else {
-                    Auth.clearSession()
+                    AuthService.clearSession()
+                    AuthService.setToken(null)
                 }
             }
             setIsLoading(false)
@@ -56,19 +58,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 2. Persist Session & Schedule Refresh
     useEffect(() => {
         if (!session) {
-            Auth.clearSession()
+            AuthService.clearSession()
+            AuthService.setToken(null)
             if (refreshTimeoutRef.current)
                 clearTimeout(refreshTimeoutRef.current)
             return
         }
 
-        Auth.setSession(session)
+        AuthService.setSession(session)
+        AuthService.setToken(session.token || null)
 
         if (!session.token) return
 
         // Schedule Refresh
-        const msUntilRefresh = Auth.getTimeUntilRefresh(session.token)
-        const exp = Auth.getJwtExp(session.token)
+        const msUntilRefresh = AuthService.getTimeUntilRefresh(session.token)
+        const exp = AuthService.getJwtExp(session.token)
 
         if (!exp) return
 
@@ -91,11 +95,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const handleRefreshToken = async () => {
         try {
-            const res = await Auth.refreshToken()
-            const data = res.data || res
-            if (data && data.data.token) {
+            const res = await AuthService.refreshToken()
+            if (res && res.data && res.data.token) {
                 setSession((prev) =>
-                    prev ? { ...prev, token: data.data.token } : null
+                    prev ? { ...prev, token: res.data.token } : null
                 )
             }
         } catch (error) {
@@ -106,13 +109,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = async (email: string, password: string): Promise<boolean> => {
         try {
-            const res = await Auth.login({ email, password })
+            const res = await AuthService.login({ email, password })
             const data = res.data || res
 
-            if (data && data.data.token) {
+            if (res && res.data && res.data.token) {
+                AuthService.setToken(res.data.token)
                 setSession({
-                    token: data.data.token,
-                    user: data.data.user,
+                    token: res.data.token,
+                    user: res.data.user,
                 })
 
                 const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
@@ -133,16 +137,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const loginWithGoogle = async (token: string): Promise<boolean> => {
         try {
-            Auth.setSession({
+            AuthService.setSession({
                 token,
                 user: null,
             })
-            const res = await Auth.getCurrentUser()
+            const res = await AuthService.getCurrentUser()
 
             if (res && res.data) {
+                AuthService.setToken(token)
                 setSession({
                     token,
-                    user: res.data.data,
+                    user: res.data,
                 })
 
                 const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
@@ -163,7 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const register = async (payload: any): Promise<boolean> => {
         try {
-            await Auth.register(payload)
+            await AuthService.register(payload)
             return true
         } catch (error: any) {
             toast.error(error.message || 'Registration failed')
@@ -173,24 +178,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = async () => {
         try {
-            await Auth.logout()
+            await AuthService.logout()
         } catch (e) {
             // ignore
         }
         setSession(null)
-        Auth.clearSession()
+        AuthService.clearSession()
+        AuthService.setToken(null)
         router.push('/login')
         toast.info('Logged out')
     }
 
     const updateCurrentUser = async () => {
         try {
-            const res = await Auth.getCurrentUser()
-            const data = res.data || res
-            if (data && data?.data) {
+            const res = await AuthService.getCurrentUser()
+            if (res && res.data) {
                 setSession((prev) => ({
                     ...prev,
-                    user: data.data,
+                    user: res.data,
                 }))
             }
         } catch (error) {

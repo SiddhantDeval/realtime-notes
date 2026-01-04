@@ -10,7 +10,7 @@ import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { client } from '@/api/client'
+import { AuthService } from '@/api/auth'
 
 const signupSchema = z
     .object({
@@ -50,7 +50,7 @@ export default function Register() {
         },
         onSubmit: async ({ value }) => {
             try {
-                const res = await client.register({
+                const res = await AuthService.register({
                     name: value.fullName,
                     email: value.email,
                     password: value.password,
