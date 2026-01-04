@@ -13,15 +13,16 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<Theme>('light')
-    const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
-        setMounted(true)
         // Check local storage or system preference
         const savedTheme = localStorage.getItem('theme') as Theme
         if (savedTheme) {
             setTheme(savedTheme)
-            document.documentElement.classList.toggle('dark', savedTheme === 'dark')
+            document.documentElement.classList.toggle(
+                'dark',
+                savedTheme === 'dark'
+            )
         } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
             setTheme('dark')
             document.documentElement.classList.add('dark')
@@ -32,7 +33,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const newTheme = theme === 'light' ? 'dark' : 'light'
         setTheme(newTheme)
         localStorage.setItem('theme', newTheme)
-        
+
         if (newTheme === 'dark') {
             document.documentElement.classList.add('dark')
         } else {
@@ -40,11 +41,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
-    // Avoid hydration mismatch by rendering nothing until mounted
-    if (!mounted) {
-        return <>{children}</>
-    }
-
+    // Always render children to avoid "useTheme must be used within a ThemeProvider" error
+    // The theme might be 'light' initially even if system is dark (until useEffect runs),
+    // but this prevents the crash.
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
             {children}

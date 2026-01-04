@@ -24,6 +24,7 @@ export default function Header() {
     const { isAuthenticated, user, logout } = useAuth()
     const { theme, toggleTheme } = useTheme()
     const [isMobileOpen, setIsMobileOpen] = useState(false)
+
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const pathname = usePathname()
     const profileRef = useRef<HTMLDivElement>(null)
@@ -218,7 +219,6 @@ export default function Header() {
                         )}
                     </div>
 
-                    {/* Mobile Menu Toggle */}
                     <div className="flex md:hidden items-center gap-3">
                         <button
                             onClick={toggleTheme}
