@@ -2,15 +2,13 @@
 
 import Link from 'next/link'
 import { EyeClosedIcon, EyeIcon } from 'lucide-react'
-
 import { useState } from 'react'
-
 import { ControlledInput } from '@/components/Input'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { AuthService } from '@/api/auth'
+import { useAuth } from '@/context/authContext'
 
 const signupSchema = z
     .object({
@@ -36,6 +34,7 @@ export default function Register() {
     const [showPwd, setShowPwd] = useState(false)
     const [showCPwd, setSetshowCPwd] = useState(false)
     const router = useRouter()
+    const { register } = useAuth()
 
     const form = useForm({
         defaultValues: {
@@ -50,16 +49,17 @@ export default function Register() {
         },
         onSubmit: async ({ value }) => {
             try {
-                const res = await AuthService.register({
+                const res = await register({
                     name: value.fullName,
                     email: value.email,
                     password: value.password,
                 })
-                const data = res.data
-
-                console.log('register user data:', data)
-                toast.success('Account created successfully!')
-                router.push('/login')
+                if (res) {
+                    toast.success('Account created successfully!')
+                    router.push('/login')
+                } else {
+                    toast.error('Registration failed')
+                }
             } catch (error: any) {
                 console.error(error)
                 toast.error(
@@ -84,8 +84,9 @@ export default function Register() {
                                 alt="SyncNotes"
                                 className="h-10 w-10 fill-current"
                             />
-                            <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-brand-600 to-brand-400">SyncNotes</span>
-
+                            <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-brand-600 to-brand-400">
+                                SyncNotes
+                            </span>
                         </Link>
                     </div>
                     <h1 className="text-[32px] font-bold leading-tight tracking-tight text-text-primary">

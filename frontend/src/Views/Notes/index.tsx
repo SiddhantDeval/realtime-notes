@@ -20,11 +20,11 @@ export default function Notes() {
     const [initialLoaded, setInitialLoaded] = useState(false)
 
     const router = useRouter()
-    const { user, isAuthenticated } = useAuth()
+    const { isAuthenticated } = useAuth()
 
     const loadNotes = useCallback(
         async (reset = false) => {
-            if (loading && !reset || !isAuthenticated) return
+            if ((loading && !reset) || !isAuthenticated) return
             setLoading(true)
             try {
                 const currentCursor = reset ? undefined : cursor

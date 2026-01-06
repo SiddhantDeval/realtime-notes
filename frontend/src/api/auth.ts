@@ -1,5 +1,6 @@
 import { httpClient } from './httpClient'
 import { AuthSession, User } from '@/types'
+import { SESSION_KEY } from '@/config'
 
 export interface AuthResponse {
     user: User
@@ -13,12 +14,18 @@ export class AuthService {
         return httpClient.post<{ data: AuthResponse }>('/auth/login', payload)
     }
 
-    static register(payload: { email: string; password: string; name: string }) {
-        return httpClient.post<{ data: AuthResponse }>('/auth/register', payload)
+    static register(payload: {
+        email: string
+        password: string
+        name: string
+    }) {
+        return httpClient.post<{ data: AuthResponse }>(
+            '/auth/register',
+            payload
+        )
     }
 
     static logout() {
-        AuthService.clearSession()
         return httpClient.post('/auth/logout')
     }
 
@@ -27,7 +34,9 @@ export class AuthService {
     }
 
     static refreshToken() {
-        return httpClient.post<{ data: { token: string } }>('/auth/refresh-token')
+        return httpClient.post<{ data: { token: string } }>(
+            '/auth/refresh-token'
+        )
     }
 
     static setToken(token: string | null) {
@@ -36,12 +45,13 @@ export class AuthService {
 
     static setSession(session: AuthSession) {
         if (typeof window === 'undefined') return
-        localStorage.setItem('auth_session', JSON.stringify(session))
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+        AuthService.setToken(session.token || null)
     }
 
     static getSession(): AuthSession | null {
         if (typeof window === 'undefined') return null
-        const json = localStorage.getItem('auth_session')
+        const json = localStorage.getItem(SESSION_KEY)
         try {
             return json ? JSON.parse(json) : null
         } catch {
@@ -51,7 +61,7 @@ export class AuthService {
 
     static clearSession() {
         if (typeof window === 'undefined') return
-        localStorage.removeItem('auth_session')
+        localStorage.removeItem(SESSION_KEY)
         AuthService.setToken(null)
     }
 
@@ -59,7 +69,9 @@ export class AuthService {
         try {
             const [, payload] = token.split('.')
             if (!payload) return null
-            const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+            const decoded = JSON.parse(
+                atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+            )
             return typeof decoded.exp === 'number' ? decoded.exp * 1000 : null
         } catch {
             return null
