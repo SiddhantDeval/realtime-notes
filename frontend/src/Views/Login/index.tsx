@@ -32,11 +32,10 @@ export default function Login() {
         onSubmit: async ({ value }) => {
             toast.loading('Logging in...', { id: 'loading' })
             try {
-                await login(value.email, value.password)
+                const isLogin = await login(value.email, value.password)
                 toast.dismiss('loading')
 
-                const auth = localStorage.getItem('auth_session')
-                if (auth) {
+                if (isLogin) {
                     toast.success('Logged in successfully', { id: 'success' })
                     router.push('/notes')
                 }
@@ -61,8 +60,9 @@ export default function Login() {
                                 alt="SyncNotes"
                                 className="h-10 w-10 fill-current"
                             />
-                            <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-brand-600 to-brand-400">SyncNotes</span>
-
+                            <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-brand-600 to-brand-400">
+                                SyncNotes
+                            </span>
                         </Link>
                     </div>
                     <h1 className="text-[32px] font-bold leading-tight tracking-tight text-text-primary">

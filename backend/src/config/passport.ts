@@ -15,8 +15,6 @@ export const configurePassport = () => {
             },
             async (req, accessToken, refreshToken, profile, done) => {
                 try {
-                    console.log('Google Profile:', profile.emails?.[0].value) // Debug log
-
                     const email = profile.emails?.[0]?.value
                     if (!email) {
                         return done(
