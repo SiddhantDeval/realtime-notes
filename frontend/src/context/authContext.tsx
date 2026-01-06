@@ -31,7 +31,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<AuthSession | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const router = useRouter()
-    const pathname = usePathname()
 
     // Refresh timer ref
     const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -43,11 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (stored && stored.token) {
                 // Check validity
                 if (!AuthService.isTokenExpired(stored.token)) {
-                    AuthService.setToken(stored.token)
                     setSession(stored)
                 } else {
                     AuthService.clearSession()
-                    AuthService.setToken(null)
                 }
             }
             setIsLoading(false)
@@ -57,16 +54,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // 2. Persist Session & Schedule Refresh
     useEffect(() => {
+        if (isLoading) return
+
         if (!session) {
             AuthService.clearSession()
-            AuthService.setToken(null)
             if (refreshTimeoutRef.current)
                 clearTimeout(refreshTimeoutRef.current)
             return
         }
 
         AuthService.setSession(session)
-        AuthService.setToken(session.token || null)
 
         if (!session.token) return
 
@@ -91,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (refreshTimeoutRef.current)
                 clearTimeout(refreshTimeoutRef.current)
         }
-    }, [session])
+    }, [session, isLoading])
 
     const handleRefreshToken = async () => {
         try {
@@ -115,7 +112,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const data = res.data || res
 
             if (res && res.data && res.data.token) {
-                AuthService.setToken(res.data.token)
                 setSession({
                     token: res.data.token,
                     user: res.data.user,
@@ -146,7 +142,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const res = await AuthService.getCurrentUser()
 
             if (res && res.data) {
-                AuthService.setToken(token)
                 setSession({
                     token,
                     user: res.data,
@@ -185,8 +180,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // ignore
         }
         setSession(null)
-        AuthService.clearSession()
-        AuthService.setToken(null)
         router.push('/login')
         toast.info('Logged out')
     }
