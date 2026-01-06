@@ -4,26 +4,24 @@ import { useAuth } from '@/context/authContext'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4001'
 export function useSocket() {
-   
-    const { user } = useAuth()
+    const { token } = useAuth()
     const [socket, setSocket] = useState<Socket | null>(null)
 
     useEffect(() => {
-        console.log('SERVER_URL', SERVER_URL, user)
-        if (!user?.token) return
+        if (!token) return
+        console.log('Connected to socket')
         const newSocket = io(SERVER_URL, {
             auth: {
-                token: user.token,
+                token,
             },
         })
-        
 
         setSocket(newSocket)
 
         return () => {
             newSocket.disconnect()
         }
-    }, [user?.token])
+    }, [token])
 
     return socket
 }
